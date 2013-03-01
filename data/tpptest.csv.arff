@@ -1,0 +1,15 @@
+@relation tpptest-weka.filters.unsupervised.attribute.NominalToString-Cfirst
+
+@attribute NodeId string
+@attribute b numeric
+@attribute c numeric
+@attribute d numeric
+@attribute 'class' {p,q,r}
+
+@data
+pizza,1,1,0,p
+chips,0,0,1,q
+pasta,1,0,1,p
+cheese,1,0,0,r
+bread,0,1,0,r
+fish,0,1,1,q

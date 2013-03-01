@@ -1,0 +1,21 @@
+@relation 'testgrapharff-weka.filters.unsupervised.attribute.Reorder-R2-last,1-weka.filters.unsupervised.attribute.NominalToString-Clast-weka.filters.unsupervised.attribute.Reorder-Rfirst-3,5-10,4,11'
+
+@attribute b numeric
+@attribute c numeric
+@attribute d numeric
+@attribute _pizza numeric
+@attribute _chips numeric
+@attribute _pasta numeric
+@attribute _cheese numeric
+@attribute _bread numeric
+@attribute _fish numeric
+@attribute class {p,q,r}
+@attribute NodeId string
+
+@data
+1,1,0,0,3,0,0,0,0,p,pizza
+0,0,1,0,0,1,2,0,0,q,chips
+1,0,1,1,0,0,0,0,0,p,pasta
+1,0,0,0,0,0,0,0,0,r,cheese
+0,1,0,2,0,0,0,0,0,r,bread
+0,1,1,0,0,0,0,4,0,q,fish

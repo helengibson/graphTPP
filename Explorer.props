@@ -1,0 +1,3 @@
+# Explorer.props file. Adds the TPPExplorerPanel to the Tabs key.
+Tabs=tpp.TPPExplorerPanel
+TabsPolicy=append

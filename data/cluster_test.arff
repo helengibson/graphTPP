@@ -1,0 +1,11 @@
+@relation "cluster test"
+@attribute at1 real
+@attribute at2 real
+@attribute 'class' {A,B,C}
+@data
+1	1	A
+1	2	A
+3	2	B
+4	3	B
+5	12	C
+6	13	C

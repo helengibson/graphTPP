@@ -1,0 +1,7 @@
+NodeId,b,c,d,class,_pizza,_chips,_pasta,_cheese,_bread,_fish
+pizza,1,1,0,p,0,1,0,0,0,0
+chips,0,0,1,q,0,0,1,1,0,0
+pasta,1,0,1,p,1,0,0,0,0,0
+cheese,1,0,0,r,0,0,0,0,0,0
+bread,0,1,0,r,1,0,0,0,0,0
+fish,0,1,1,q,0,0,0,0,1,0

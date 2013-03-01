@@ -1,0 +1,15 @@
+@relation 'tpptest-weka.filters.unsupervised.attribute.NominalToString-Cfirst-weka.filters.unsupervised.attribute.Reorder-R2-last,1'
+
+@attribute b numeric
+@attribute c numeric
+@attribute d numeric
+@attribute class {p,q,r}
+@attribute ﻿name string
+
+@data
+1,1,0,p,pizza
+0,0,1,q,chips
+1,0,1,p,pasta
+1,0,0,r,cheese
+0,1,0,r,bread
+0,1,1,q,fish

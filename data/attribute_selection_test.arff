@@ -1,0 +1,21 @@
+@relation "attribute selection test: rand1,2, and 3 are random attributes. dep1 and dep2 together determine the class. Attribute selection should select dep1 and dep2 only"
+@attribute name string
+@attribute rand1 real
+@attribute rand2 real
+@attribute rand3 real
+@attribute dep1 real
+@attribute dep2 real
+@attribute class {A,B,C,D}
+@data
+item1	0.945617692	0.503171817	0.910695338	1	1	A	
+item2	0.688478731	0.308960083	0.699775185	1	1	A	
+item3	0.700601598	0.088039903	0.101207072	1	1	A	
+item4	0.771248949	0.625065243	0.741853667	1	0	B	
+item5	0.981042384	0.767490603	0.377499086	1	0	B	
+item6	0.581188968	0.875867158	0.760713897	1	0	B	
+item7	0.853724076	0.539181393	0.663530481	0	1	C	
+item8	0.196998745	0.697707839	0.152725645	0	1	C	
+item9	0.008851749	0.067869891	0.675757111	0	1	C	
+item10	0.752898378	0.125568001	0.027569982	0	0	D	
+item11	0.173017749	0.693922394	0.668866608	0	0	D	
+item12	0.180289715	0.862461002	0.701853882	0	0	D	
