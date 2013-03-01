@@ -1,5 +1,6 @@
 package tpp;
 
+import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.sql.ResultSet;
@@ -8,6 +9,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.Stack;
 import java.util.Vector;
 
@@ -18,6 +20,7 @@ import processing.core.PVector;
 import weka.core.Attribute;
 import weka.core.Instance;
 import weka.core.Instances;
+import weka.core.matrix.Matrix;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Remove;
 
@@ -38,6 +41,7 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 
 	public ScatterPlotModel(int n) {
 		super(n);
+		edgeModel = new EdgeModel(this);
 	}
 
 	/*
@@ -535,217 +539,6 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
 	}
 
-	// Color the edges by their source node color
-	protected boolean showSourceEdgeColor;
-
-	/** Whether to color the edges the same as the source node */
-	public void setSourceColorEdges(boolean b) {
-		showSourceEdgeColor = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean sourceColorEdges() {
-		return showSourceEdgeColor;
-	}
-
-	// Color the edges by target node color
-	protected boolean showTargetEdgeColor;
-
-	/** Whether to color the edges the same as the source node */
-	public void setTargetColorEdges(boolean b) {
-		showTargetEdgeColor = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean targetColorEdges() {
-		return showTargetEdgeColor;
-	}
-
-	protected boolean showDefaultEdgeColor = true;
-
-	/** Whether to color all the edges the same */
-	public void setDefaultColorEdges(boolean b) {
-		showDefaultEdgeColor = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean defaultColorEdges() {
-		return showDefaultEdgeColor;
-	}
-
-	// Color the edges by their a mixture of source and target node colors
-	protected boolean showMixedEdgeColor;
-
-	/** Whether to color the edges the same as the source node */
-	public void setMixedColorEdges(boolean b) {
-		showMixedEdgeColor = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean mixedColorEdges() {
-		return showMixedEdgeColor;
-	}
-
-	// show the edges as straight lines
-	protected boolean straightEdges = true;
-
-	/** Whether to color the edges the same as the source node */
-	public void setStraightEdges(boolean b) {
-		straightEdges = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean straightEdges() {
-		return straightEdges;
-	}
-
-	// show the edges as bezier curves rather than straight lines
-	// Color the edges by their source node color
-	protected boolean bezierEdges;
-
-	/** Whether to color the edges the same as the source node */
-	public void setBezierEdges(boolean b) {
-		bezierEdges = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean bezierEdges() {
-		return bezierEdges;
-	}
-
-	// show the edges as bundles rather than straight lines
-	protected boolean bundledEdges;
-
-	private Attribute currentBundledAttribute;
-
-	public void setBundledEdges(boolean b) {
-		bundledEdges = b;
-		currentBundledAttribute = separationAttribute;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-	
-	public Attribute getCurrentBundledAttribute() {
-		return currentBundledAttribute;
-	}
-
-	public boolean bundledEdges() {
-		return bundledEdges;
-	}
-
-	// show the edges as fans rather than straight lines
-	protected boolean fannedEdges;
-
-	public void setFannedEdges(boolean b) {
-		fannedEdges = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean fannedEdges() {
-		return fannedEdges;
-	}
-	
-	// bundle the edges intelligently
-	protected boolean intelligentEdges;
-
-	public void setIntelligentEdges(boolean b) {
-		intelligentEdges = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean intelligentEdges() {
-		return intelligentEdges;
-	}
-
-	protected boolean arrowedEdges;
-
-	/** Whether to add an arrow to each edge to indicate direction */
-	public void setArrowedEdges(boolean b) {
-		arrowedEdges = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean arrowedEdges() {
-		return arrowedEdges;
-	}
-
-	/** Filter all edges from view until nodes are selected */
-	protected boolean filterAllEdges;
-
-	public void setFilterAllEdges(boolean b) {
-		filterAllEdges = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-	
-	public boolean filterAllEdges() {
-		return filterAllEdges;
-	}
-	
-	/** Filter edges based on their weight */
-	protected boolean filterEdgesByWeight;
-
-	public void setFilterEdgesByWeight(boolean b) {
-		filterEdgesByWeight = b;
-		fireModelChanged(TPPModelEvent.CONTROL_PANEL_UPDATE);
-	}
-
-	public boolean filterEdgesByWeight() {
-		return filterEdgesByWeight;
-	}
-	
-	/** Reflect the edge weights in the thickness of the edges */
-	protected boolean viewEdgeWeights;
-	
-	public void setViewEdgeWeights(boolean b) {
-		viewEdgeWeights = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean viewEdgeWeights() {
-		return viewEdgeWeights;
-	}
-
-	private int lowEdgeWeightValue;
-
-	private int upperEdgeWeightRange;
-	
-	public double getMinEdgeWeight() {
-		ArrayList<Connection> allConnections = getGraph().getAllConnections();
-		double min = allConnections.get(0).getEdgeWeight();
-		for (int i = 1; i < allConnections.size(); i++){
-			if (allConnections.get(i).getEdgeWeight() < min)
-				min = allConnections.get(i).getEdgeWeight();
-		}
-		return min;
-	}
-	
-	public double getMaxEdgeWeight() {
-		ArrayList<Connection> allConnections = graph.getAllConnections();
-		double max = allConnections.get(0).getEdgeWeight();
-		for (int i = 1; i < allConnections.size(); i++){
-			if (allConnections.get(i).getEdgeWeight() > max)
-				max = allConnections.get(i).getEdgeWeight();
-		}
-		return max;
-	}
-	
-	public void setLowerEdgeWeightRange(int lowerValue){
-		lowEdgeWeightValue = lowerValue;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-	
-	public void setUpperEdgeWeightRange(int upperValue){
-		upperEdgeWeightRange = upperValue;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-	
-	public int getLowerEdgeWeightRange(){
-		return lowEdgeWeightValue;
-	}
-	
-	public int getUpperEdgeWeightRange(){
-		return upperEdgeWeightRange;
-	}
-
 	public void createSeries(Attribute indexAttribute, Attribute idAttribute) {
 		super.createSeries(indexAttribute, idAttribute);
 		setShowSeries(true);
@@ -977,6 +770,8 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 	protected boolean showGraph = false;
 	protected boolean graphLoaded = false;
 
+	private EdgeModel edgeModel;
+
 	public void loadGraph(Graph graph) {
 		super.loadGraph(graph);
 		setShowGraph(true);
@@ -1009,6 +804,9 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 		return graphLoaded;
 	}
 
+	public EdgeModel getEdgeModel() {
+		return edgeModel;
+	}
 	// Set the transparency level
 
 	protected int transparencyLevel = 25;
@@ -1021,6 +819,17 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 		transparencyLevel = t;
 		fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
 	}
+	
+	protected int currentTransparency;
+	
+	public int getTransparency() {
+		return currentTransparency;
+	}
+
+	public void setTransparency(int t) {
+		currentTransparency = t;
+	}
+	
 
 	protected float beizerCurviness = 0.1f;
 
@@ -1031,29 +840,6 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 	public void setBeizerCurviness(float t) {
 		beizerCurviness = t;
 		fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
-	}
-
-	protected boolean incomingEdges = true;
-	protected boolean outgoingEdges = true;
-
-	/** Show the incoming edges of selected nodes(s) */
-	public void showIncomingEdges(boolean b) {
-		incomingEdges = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean incomingEdges() {
-		return incomingEdges;
-	}
-
-	/** Show the outgoing edges of selected nodes(s) */
-	public void showOutgoingEdges(boolean b) {
-		outgoingEdges = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean outgoingEdges() {
-		return outgoingEdges;
 	}
 
 	protected boolean labels = false;
@@ -1166,9 +952,6 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 		
 	public boolean neighbourSelected(int i) {
 		// get all neighbours of a node
-		System.out.println(getEdgeAttributeString());
-		System.out.println(getEdgeAttributeIndex());
-		System.out.println(instances.attribute(getEdgeAttributeString()).index());
 		int idIndex =  instances.attribute(getEdgeAttributeString()).index(); 
 		Iterator<Connection> nbs = getGraph().findNeighbours(
 				instances.instance(i).stringValue(idIndex)).iterator();
@@ -1186,14 +969,14 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 				// j = indexOf(target);
 				j = nextnbr.getTargetIndex();
 				// then check if this instance is in the list of selected nodes
-				if (isPointSelected(j) && incomingEdges()) {
+				if (isPointSelected(j) && edgeModel.incomingEdges()) {
 					result = true;
 				}
 			} else if (nextnbr.getTargetNode().equals(instances.instance(i).stringValue(idIndex))) {
 				// Instance source = nextnbr.getSourceInstance();
 				// j = indexOf(source);
 				j = nextnbr.getSourceIndex();
-				if (isPointSelected(j) && outgoingEdges()) {
+				if (isPointSelected(j) && edgeModel.outgoingEdges()) {
 					result = true;
 				}
 			} else {
@@ -1249,16 +1032,27 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 	private String classColor = "Default";
 	private String bgColor = "Light";
 
-	private ArrayList<Point2D> centroids;
-
-	private ArrayList<Float> magnitudes;
-
-	private ArrayList<PVector> vectors;
-
-	private double[] centroidRadii;
-
-	private ArrayList<PVector> midPoints;
-
+	/** Noise added to the view to better separate the points */
+	private Matrix noise;
+	
+	public void setNoise(){
+		noise = new Matrix(getNumDataPoints(),
+				getNumDataDimensions());
+	}
+	
+	/** Change the noise */
+	public void updateNoise() {
+		double scale = getTransform().getScaleX();
+		Random ran = new Random();
+		for (int i = 0; i < noise.getRowDimension(); i++)
+			for (int j = 0; j < noise.getColumnDimension(); j++)
+				noise.set(i, j, (ran.nextDouble() - 0.5d) * 20d / scale);
+	}
+	
+	public Matrix getNoise(){
+		return noise;
+	}
+	
 	public void setBGColor(String selectedItem) {
 		bgColor = selectedItem;
 
@@ -1289,161 +1083,31 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 
 	}
 
-	public void calculateCentroids() {
-
-		Attribute sepAtt = currentBundledAttribute;
-
-		centroids = new ArrayList<Point2D>();
-
-		if (sepAtt.isNominal()) {
-			Enumeration classValues = sepAtt.enumerateValues();
-			int i = 0;
-			String classValue;
-			while (classValues.hasMoreElements()) {
-				classValue = (String) classValues.nextElement();
-				int k = 0;
-				double xcoordsum = 0;
-				double ycoordsum = 0;
-				for (int j = 0; j < getNumDataPoints(); j++) {
-					// System.out.println(instances.get(j).toString(sepAtt) +
-					// " : " + classValue);
-					if (instances.get(j).toString(sepAtt)
-							.replaceAll("^\'|\'$", "").equals(classValue)) {
-						xcoordsum += getTarget().get(j, 0);
-						ycoordsum += getTarget().get(j, 1);
-						k++;
-					}
-				}
-				centroids.add(new Point2D.Double(xcoordsum / k, ycoordsum / k));
-				// System.out.println(i + " " + xcoordsum + " " + ycoordsum +
-				// " " + k);
-				i++;
-			}
+	/**
+	 * Set the colours depending on if they are chosen to be viewed by class or
+	 * numeric
+	 * @param i
+	 *            the node the colour applies to
+	 * @return
+	 */
+	Color setColor(int i) {
+		Color c = null;
+		if (getColourAttribute() == null) {
+			c = getColours().getForegroundColor();
+		} else if (getColourAttribute().isNominal()) {
+			c = getColours().getClassificationColor(
+					(int) getInstances().instance(i)
+							.value(getColourAttribute()));
+		} else if (getColourAttribute().isNumeric()) {
+			c = getColours().getColorFromSpectrum(
+					getInstances().instance(i)
+							.value(getColourAttribute()),
+					colorAttributeLowerBound,
+					colorAttributeUpperBound);
 		}
+		return c;
 	}
 
-	public void calculateMagnitudesandVectors() {
-		magnitudes = new ArrayList<Float>();
-		vectors = new ArrayList<PVector>();
-		for (int i = 0; i < centroids.size(); i++) {
-			for (int j = 0; j < centroids.size(); j++) {
-				PVector p = new PVector((float) centroids.get(i).getX(),
-						(float) centroids.get(i).getY());
-				p.sub(new PVector((float) centroids.get(j).getX(),
-						(float) centroids.get(j).getY()));
-				// p.mult(0.75f);
-				float length = p.mag();
-				magnitudes.add(length);
-				p.normalize();
-				vectors.add(p);
-			}
-		}
-	}
-
-	public ArrayList<Float> getMagnitudes() {
-		return magnitudes;
-	}
-
-	public ArrayList<PVector> getVectors() {
-		return vectors;
-	}
-
-	public ArrayList<Point2D> getCentroids() {
-		return centroids;
-	}
 	
-	public double[] getCentroidRadii() {
-		return centroidRadii;
-	}
-	
-	public void calculateCentroidRadius() {
-		
-		Attribute sepAtt = currentBundledAttribute;
-		centroidRadii =  new double[sepAtt.numValues()];
-		
-		if (sepAtt.isNominal()) {
-			Enumeration classValues = sepAtt.enumerateValues();
-			String classValue;
-			int i = 0;
-			while (classValues.hasMoreElements()) {
-				classValue = (String) classValues.nextElement();
-				int k = 0;
-				double maxRadius = 0;
-				for (int j = 0; j < getNumDataPoints(); j++) {
-					// System.out.println(instances.get(j).toString(sepAtt) +
-					// " : " + classValue);
-					if (instances.get(j).toString(sepAtt)
-							.replaceAll("^\'|\'$", "").equals(classValue)) {
-						double xcoord = getTarget().get(j, 0);
-						double ycoord = getTarget().get(j, 1);
-						double radius = Math.sqrt(Math.pow(xcoord, 2)+ Math.pow(ycoord, 2));
-						if (radius > maxRadius)
-							maxRadius = radius;
-					}
-				}
-				centroidRadii[i] = maxRadius;
-				i++;
-			}
-		}
-	}
-	
-	public void calculateBezierCentroidMidPoints() {
-		midPoints = new ArrayList<PVector>();
-		for (int i = 0; i < centroids.size(); i++) {
-			for (int j = 0; j < centroids.size(); j++) {
-				
-//				Attribute sepAtt = getSeparationAttribute();
-//				int c = (int) getInstances().instance(i).value(sepAtt);
-//				int d = (int) getInstances().instance(j).value(sepAtt);
-
-				Point2D sourceCentroid = centroids.get(i);
-				Point2D targetCentroid = centroids.get(j);
-
-				double scx = sourceCentroid.getX();
-				double scy = sourceCentroid.getY();
-
-				double tcx = targetCentroid.getX();
-				double tcy = targetCentroid.getY();
-							 
-				// find the midpoint of the bezier curve between the two centroids
-				PVector p2 = new PVector((float) tcx, (float) tcy); // first centroid to mid point of centroids
-				p2.sub(new PVector((float) scx, (float) scy));
-				float lengthp2 = p2.mag();
-				p2.normalize();
-
-				float factorp2 = 0.1f * lengthp2;
-
-				// normal vector to the edge
-				PVector n2 = new PVector(p2.y, -p2.x);
-				n2.mult(factorp2);
-
-				// first control point
-				PVector c1p2 = new PVector(p2.x, p2.y);
-				c1p2.mult(factorp2);
-				c1p2.add(new PVector((float) scx, (float) scy));
-				c1p2.add(n2);
-
-				// second control point
-				PVector c2p2 = new PVector(p2.x, p2.y);
-				c2p2.mult(-factorp2);
-				c2p2.add(new PVector((float) tcx, (float) tcy));
-				c2p2.add(n2);
-				 
-				double bmpx = (0.125 * (scx + tcx)) + (0.375 * (c1p2.x + c2p2.x));
-				double bmpy = (0.125 * (scy + tcy)) + (0.375 * (c1p2.y + c2p2.y));
-				 
-				midPoints.add(new PVector((float)bmpx, (float)bmpy));
-				
-			}
-		}
-				
-	}
-	
-	public ArrayList<PVector> getBezierMidPoints() {
-		for (PVector i : midPoints){
-			System.out.println(i);
-		}
-		return midPoints;
-	}
 
 }

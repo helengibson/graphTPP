@@ -95,7 +95,7 @@ public class TPPFrame extends JFrame implements ActionListener {
 	private JMenuItem helpMenuItem;
 
 	ScatterPlotViewPanel viewPanel;
-	ScatterPlotControlPanel2 controlPanel = null;
+	ScatterPlotControlPanel controlPanel = null;
 
 	public TPPFrame() {
 		super(FRAME_TITLE);
@@ -612,7 +612,7 @@ public class TPPFrame extends JFrame implements ActionListener {
 				model.setInstances(in, false, null);
 				model.setDeepInstances(in);
 				viewPanel = new ScatterPlotViewPanel();
-				controlPanel = new ScatterPlotControlPanel2();
+				controlPanel = new ScatterPlotControlPanel();
 				controlPanel.setModel(model);
 				setTitle(model.getInstances().relationName());
 				enableViewMenuItems();

@@ -41,7 +41,7 @@ import weka.core.Instances;
 
 public class AttributeSelector extends JFrame implements ActionListener, ListSelectionListener {
 	
-	private ScatterPlotControlPanel2 cp;
+	private ScatterPlotControlPanel cp;
 	private DefaultListModel attributeListModel;
 	private ScatterPlotModel model;
 	
@@ -52,7 +52,7 @@ public class AttributeSelector extends JFrame implements ActionListener, ListSel
 //	private JButton CancelButton;
 	private AttributeTableModel attributeTableModel;
 
-	public AttributeSelector(ScatterPlotModel model, ScatterPlotControlPanel2 cp) {
+	public AttributeSelector(ScatterPlotModel model, ScatterPlotControlPanel cp) {
 		super("Select attributes");
 		this.cp = cp;
 		this.model = model;

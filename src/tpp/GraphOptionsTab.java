@@ -32,7 +32,8 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		ItemListener, ChangeListener {
 
 	ScatterPlotModel spModel;
-	Graph graph;
+	private Graph graph;
+	private EdgeModel edgeModel;
 
 	private JButton loadGraphButton;
 	private JCheckBox directedCheckBox;
@@ -72,8 +73,10 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 
 		super();
 		this.spModel = spModel;
+		edgeModel = spModel.getEdgeModel();
 		init();
 		setVisible(true);
+		
 	}
 
 	private void init() {
@@ -153,15 +156,15 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 
 		directedCheckBox = new JCheckBox("Show Arrows");
 		directedCheckBox.setEnabled(false);
-		directedCheckBox.setSelected(spModel.arrowedEdges());
+		directedCheckBox.setSelected(edgeModel.arrowedEdges());
 
 		filterEdgeCheckBox = new JCheckBox("Filter Edges");
 		filterEdgeCheckBox.setEnabled(false);
-		filterEdgeCheckBox.setSelected(spModel.filterAllEdges);
+		filterEdgeCheckBox.setSelected(edgeModel.filterAllEdges);
 
 		edgeWeightsCheckBox = new JCheckBox("Weight Edges");
 		edgeWeightsCheckBox.setEnabled(false);
-		edgeWeightsCheckBox.setSelected(spModel.viewEdgeWeights);
+		edgeWeightsCheckBox.setSelected(edgeModel.viewEdgeWeights);
 
 		loadGraphButton.addActionListener(this);
 		directedCheckBox.addActionListener(this);
@@ -219,10 +222,10 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		mixedRB = new JRadioButton("Mixed");
 		noneRB = new JRadioButton("None");
 
-		sourceRB.setSelected(spModel.sourceColorEdges());
-		targetRB.setSelected(spModel.targetColorEdges());
-		mixedRB.setSelected(spModel.mixedColorEdges());
-		noneRB.setSelected(spModel.defaultColorEdges());
+		sourceRB.setSelected(edgeModel.sourceColorEdges());
+		targetRB.setSelected(edgeModel.targetColorEdges());
+		mixedRB.setSelected(edgeModel.mixedColorEdges());
+		noneRB.setSelected(edgeModel.defaultColorEdges());
 
 		sourceRB.setEnabled(false);
 		targetRB.setEnabled(false);
@@ -294,10 +297,10 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		bundledRB = new JRadioButton("Bundle");
 		fannedRB = new JRadioButton("Fan");
 
-		straightRB.setSelected(spModel.straightEdges());
-		curvedRB.setSelected(spModel.bezierEdges());
-		bundledRB.setSelected(spModel.bundledEdges());
-		fannedRB.setSelected(spModel.fannedEdges());
+		straightRB.setSelected(edgeModel.straightEdges());
+		curvedRB.setSelected(edgeModel.bezierEdges());
+		bundledRB.setSelected(edgeModel.bundledEdges());
+		fannedRB.setSelected(edgeModel.fannedEdges());
 		hideRB.setSelected(!spModel.showGraph());
 
 		straightRB.setEnabled(false);
@@ -375,8 +378,8 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		incomingCB = new JCheckBox("Incoming");
 		outgoingCB = new JCheckBox("Outgoing");
 
-		incomingCB.setSelected(spModel.incomingEdges());
-		outgoingCB.setSelected(spModel.outgoingEdges());
+		incomingCB.setSelected(edgeModel.incomingEdges());
+		outgoingCB.setSelected(edgeModel.outgoingEdges());
 
 		incomingCB.setEnabled(false);
 		outgoingCB.setEnabled(false);
@@ -573,7 +576,7 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		edgeWeightFilterCB = new JCheckBox(
 				"Filter edges according to their weight");
 		edgeWeightFilterCB.setEnabled(false);
-		edgeWeightFilterCB.setSelected(spModel.filterEdgesByWeight());
+		edgeWeightFilterCB.setSelected(edgeModel.filterEdgesByWeight());
 		edgeWeightFilterCB.addActionListener(this);
 
 		JLabel rangeSliderLowerLabel = new JLabel("Lower value");
@@ -585,11 +588,11 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 
 		if (spModel.showGraph()) {
 			rangeSlider
-					.setMinimum((int) Math.floor(spModel.getMinEdgeWeight()));
-			rangeSlider.setMaximum((int) Math.ceil(spModel.getMaxEdgeWeight()));
+					.setMinimum((int) Math.floor(edgeModel.getMinEdgeWeight()));
+			rangeSlider.setMaximum((int) Math.ceil(edgeModel.getMaxEdgeWeight()));
 
-			rangeSlider.setValue((int) Math.floor(spModel.getMinEdgeWeight()));
-			rangeSlider.setUpperValue((int) Math.ceil(spModel
+			rangeSlider.setValue((int) Math.floor(edgeModel.getMinEdgeWeight()));
+			rangeSlider.setUpperValue((int) Math.ceil(edgeModel
 					.getMaxEdgeWeight()));
 		} else {
 			rangeSlider.setMinimum(0);
@@ -610,8 +613,8 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 				rangeSliderLowerValue.setText(String.valueOf(slider.getValue()));
 				rangeSliderUpperValue.setText(String.valueOf(slider
 						.getUpperValue()));
-				spModel.setLowerEdgeWeightRange(slider.getValue());
-				spModel.setUpperEdgeWeightRange(slider.getUpperValue());
+				edgeModel.setLowerEdgeWeightRange(slider.getValue());
+				edgeModel.setUpperEdgeWeightRange(slider.getUpperValue());
 			}
 		});
 
@@ -695,23 +698,23 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 			}
 
 		if (event.getSource() == filterEdgeCheckBox) {
-			spModel.setFilterAllEdges(filterEdgeCheckBox.isSelected());
+			edgeModel.setFilterAllEdges(filterEdgeCheckBox.isSelected());
 		}
 
 		if (event.getSource() == directedCheckBox) {
-			spModel.setArrowedEdges(directedCheckBox.isSelected());
+			edgeModel.setArrowedEdges(directedCheckBox.isSelected());
 		}
 
 		if (event.getSource() == edgeWeightsCheckBox) {
-			spModel.setViewEdgeWeights(edgeWeightsCheckBox.isSelected());
+			edgeModel.setViewEdgeWeights(edgeWeightsCheckBox.isSelected());
 		}
 
 		if (event.getSource() == incomingCB) {
-			spModel.showIncomingEdges(incomingCB.isSelected());
+			edgeModel.showIncomingEdges(incomingCB.isSelected());
 		}
 
 		if (event.getSource() == outgoingCB) {
-			spModel.showOutgoingEdges(outgoingCB.isSelected());
+			edgeModel.showOutgoingEdges(outgoingCB.isSelected());
 		}
 
 		if (event.getSource() == graphSizeCombo) {
@@ -742,10 +745,7 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		}
 
 		if (event.getSource() == edgeWeightFilterCB) {
-			System.out.println("edge weight filter clicked");
-			System.out.println(edgeWeightFilterCB.isSelected());
-			spModel.setFilterEdgesByWeight(edgeWeightFilterCB.isSelected());
-			System.out.println(spModel.filterEdgesByWeight());
+			edgeModel.setFilterEdgesByWeight(edgeWeightFilterCB.isSelected());
 		}
 
 	}
@@ -753,32 +753,32 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 	@Override
 	public void itemStateChanged(ItemEvent event) {
 		if (event.getSource() == noneRB)
-			spModel.setDefaultColorEdges(noneRB.isSelected());
+			edgeModel.setDefaultColorEdges(noneRB.isSelected());
 
 		if (event.getSource() == sourceRB)
-			spModel.setSourceColorEdges(sourceRB.isSelected());
+			edgeModel.setSourceColorEdges(sourceRB.isSelected());
 
 		if (event.getSource() == targetRB)
-			spModel.setTargetColorEdges(targetRB.isSelected());
+			edgeModel.setTargetColorEdges(targetRB.isSelected());
 
 		if (event.getSource() == mixedRB)
-			spModel.setMixedColorEdges(mixedRB.isSelected());
+			edgeModel.setMixedColorEdges(mixedRB.isSelected());
 
 		if (event.getSource() == straightRB)
-			spModel.setStraightEdges(straightRB.isSelected());
+			edgeModel.setStraightEdges(straightRB.isSelected());
 
 		if (event.getSource() == curvedRB)
-			spModel.setBezierEdges(curvedRB.isSelected());
+			edgeModel.setBezierEdges(curvedRB.isSelected());
 
 		if (event.getSource() == bundledRB)
-			spModel.setBundledEdges(bundledRB.isSelected());
+			edgeModel.setBundledEdges(bundledRB.isSelected());
 
 		if (event.getSource() == fannedRB)
-			spModel.setFannedEdges(fannedRB.isSelected());
+			edgeModel.setFannedEdges(fannedRB.isSelected());
 
 		if (event.getSource() == hideRB)
 			// spModel.setShowGraph(!hideRB.isSelected());
-			spModel.setIntelligentEdges(hideRB.isSelected());
+			edgeModel.setIntelligentEdges(hideRB.isSelected());
 	}
 
 	/** Marker slider state has changed */

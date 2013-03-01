@@ -14,10 +14,10 @@ import javax.swing.SwingUtilities;
 public class SelectedAttributesTableTab extends JPanel {
 
 	private ScatterPlotModel spModel;
-	private ScatterPlotControlPanel2 spcp;
+	private ScatterPlotControlPanel spcp;
 	private SelectedAttributesTable selectionTable = null;
 
-	public SelectedAttributesTableTab(ScatterPlotControlPanel2 spcp,
+	public SelectedAttributesTableTab(ScatterPlotControlPanel spcp,
 			ScatterPlotModel spModel) {
 		
 		super();

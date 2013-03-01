@@ -1,10 +1,11 @@
+/**
+ * 
+ */
 package tpp;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Shape;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
@@ -13,100 +14,180 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 import processing.core.PVector;
+
 import weka.core.Attribute;
 import weka.core.Instance;
+import weka.core.matrix.Matrix;
 
 /**
- * Controls the various options for drawing edges in the graph
- * 
  * @author Helen
- * 
+ *
  */
-
-public class DrawEdge{
-
-	private ScatterPlotViewPanel viewPanel;
+public class Edge {
+	
 	private ScatterPlotModel spModel;
-	private DrawEdgeModel  demodel;
+	private EdgeModel edgeModel;
+	private Connection cnxn;
+	private Line2D arrowLine;
 
-	public DrawEdge(ScatterPlotViewPanel viewPanel, ScatterPlotModel spModel) {
-		this.viewPanel = viewPanel;
+	public Edge(Connection cnxn, EdgeModel edgeModel, ScatterPlotModel spModel) {
+		this.edgeModel = edgeModel;	
+		this.cnxn = cnxn;
 		this.spModel = spModel;
 	}
-	
-	public void drawEdge(Connection cnxn) {
+
+	public void drawEdge(Graphics2D g, float lineWidth) {
 		
-		if (spModel.filterEdgesByWeight()) {
-			if ((cnxn.getEdgeWeight() >= spModel
-					.getLowerEdgeWeightRange())
-					&& (cnxn.getEdgeWeight() <= spModel
-							.getUpperEdgeWeightRange()))
-				drawEdge(cnxn, g2, markerRadius, transparency,
-						markerRange, markerMin, k, curveFactor,
-						strokeWidth.getLineWidth());
+		// If we're filtering the edges by weight then only draw those edges that fall within the weight range
+		if (edgeModel.filterEdgesByWeight()) {
+			if ((cnxn.getEdgeWeight() >= edgeModel.getLowerEdgeWeightRange())
+					&& (cnxn.getEdgeWeight() <= edgeModel.getUpperEdgeWeightRange()))
+				drawEdge(cnxn, g, lineWidth);
 		} else
-			drawEdge(cnxn, g2, markerRadius, transparency,
-					markerRange, markerMin, k, curveFactor,
-					strokeWidth.getLineWidth());
+			drawEdge(cnxn, g, lineWidth);
 	}
-	}
-
-	if (spModel.showGraph()) {
-		ArrayList<Connection> allConnections = spModel.getGraph()
-				.getAllConnections();
-		double[] k = null;
-		double curveFactor = 1.0;
-		if (spModel.bundledEdges() || spModel.intelligentEdges()) {
-			spModel.calculateCentroids();
-			spModel.calculateMagnitudesandVectors();
-
-			centroids = spModel.getCentroids();
-			// magnitudes = spModel.getMagnitudes();
-			vectors = spModel.getVectors();
-
-			k = new double[(int) Math.pow(centroids.size(), 2)];
-			for (double d : k) {
-				d = 0.0; // initialise entries in the array.
-			}
-			System.out.println("k in paint view is: "
-					+ k.toString());
-
-			curveFactor = (allConnections.size() / spModel.instances
-					.numInstances()) * 100;
-
-			if (spModel.intelligentEdges()) {
-				spModel.calculateCentroidRadius();
-				spModel.calculateBezierCentroidMidPoints();
-				centroidRadii = spModel.getCentroidRadii();
-				bezierMidPoints = spModel.getBezierMidPoints();
-			}
-		}
-
-		for (int i = 0; i < allConnections.size(); i++) {
+	
+	private void drawEdge(Connection cnxn, Graphics2D g2, float lineWidth) {
+		
+		double x1,y1,x2,y2;
+		Line2D line;
+		int i, j;
+		Color c;
+		
+		System.out.println(spModel.getTransparency());
+		int transparency = spModel.getTransparency();
+		double curveFactor = edgeModel.getCurveFactor();
+		double[] clusterEdgesDrawn = edgeModel.getClusterEdgesDrawn();
+		{
+			Instance source = cnxn.getSourceInstance();
+			Instance target = cnxn.getTargetInstance();
+			double edgeWeight = cnxn.getEdgeWeight();
 			
-			Connection e = allConnections.get(i);
+			Matrix noise = spModel.getNoise();
 
-			if (spModel.filterEdgesByWeight()) {
-				System.out.println("lower: "
-						+ spModel.getLowerEdgeWeightRange() + " : "
-						+ e.getEdgeWeight());
-				System.out.println("upper: "
-						+ spModel.getUpperEdgeWeightRange() + " : "
-						+ e.getEdgeWeight());
-				if ((e.getEdgeWeight() >= spModel
-						.getLowerEdgeWeightRange())
-						&& (e.getEdgeWeight() <= spModel
-								.getUpperEdgeWeightRange()))
-					drawEdge(e, g2, markerRadius, transparency,
-							markerRange, markerMin, k, curveFactor,
-							strokeWidth.getLineWidth());
-			} else
-				drawEdge(e, g2, markerRadius, transparency,
-						markerRange, markerMin, k, curveFactor,
-						strokeWidth.getLineWidth());
+			if (source != null && target != null) {
+				i = cnxn.getSourceIndex();
+
+				x1 = spModel.getView().get(i, 0) + noise.get(i, 0);
+				y1 = spModel.getView().get(i, 1) + noise.get(i, 1);
+
+				j = cnxn.getTargetIndex();
+				x2 = spModel.getView().get(j, 0) + noise.get(j, 0);
+				y2 = spModel.getView().get(j, 1) + noise.get(j, 1);
+
+				if (!edgeModel.filterAllEdges()	|| (edgeModel.filterAllEdges()
+						&& (spModel.isPointSelected(i) || spModel.isPointSelected(j)))) {
+
+					// Color the edges of the graph
+					if (edgeModel.sourceColorEdges())
+						c = spModel.setColor(i);
+					else if (edgeModel.targetColorEdges())
+						c = spModel.setColor(j);
+					else if (edgeModel.mixedColorEdges())
+						c = addColors(spModel.setColor(i), spModel.setColor(j));
+					else if (edgeModel.defaultColorEdges())
+						c = spModel.getColours().getGraphColor();
+					else
+						c = spModel.getColours().getGraphColor();
+
+					evaluateEdgeColorOptions(g2, i, j, transparency, c);
+
+					if (edgeModel.viewEdgeWeights())
+						g2.setStroke(new BasicStroke((float) (lineWidth * edgeWeight)));
+
+					// Code from gephi
+					// TODO Add proper attribution(preview.plugin.renderers.edgerender.java)
+					if (edgeModel.bezierEdges())
+						drawBezierEdge(g2, x1, y1, x2, y2);
+					else if (edgeModel.bundledEdges()) 
+						drawBundledEdges(i, j, x1, y1, x2, y2, g2, clusterEdgesDrawn,curveFactor);
+					else if (edgeModel.fannedEdges()) 
+						drawFannedEdges(i, j, x1, y1, x2, y2, g2);
+					else if (edgeModel.intelligentEdges())
+						drawIntelligentBundledEdges(i, j, x1, y1, x2, y2, g2,
+								clusterEdgesDrawn, curveFactor);
+					else {
+						line = new Line2D.Double(x1, y1, x2, y2);
+						g2.draw(line);
+						if (edgeModel.arrowedEdges()) {
+							arrowLine = line;
+						}
+					}
+				}
+			}
 		}
 	}
 	
+	public Line2D getArrowLine() {
+		return arrowLine;
+	}
+
+	/**
+	 * 
+	 * @param g2
+	 *            The Graphics2D environment being used
+	 * @param i
+	 *            the source node
+	 * @param j
+	 *            the target node
+	 * @param transparency
+	 *            how transparent non-selected nodes should be
+	 * @param c
+	 *            the colour of the edge
+	 */
+	private void evaluateEdgeColorOptions(Graphics2D g2, int i, int j,
+			int transparency, Color c) {
+
+		if ((spModel.isPointSelected(i) && spModel.isPointSelected(j)))
+			g2.setColor(c);
+		else if ((spModel.isPointSelected(i) || spModel.isPointSelected(j))
+				&& (edgeModel.incomingEdges() && edgeModel.outgoingEdges()))
+			g2.setColor(c);
+		else if (spModel.isPointSelected(i)
+				&& (edgeModel.incomingEdges() && !edgeModel.outgoingEdges()))
+			g2.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(),
+					transparency));
+		else if (spModel.isPointSelected(i)
+				&& (!edgeModel.incomingEdges() && edgeModel.outgoingEdges()))
+			g2.setColor(c);
+		else if (spModel.isPointSelected(j)
+				&& (edgeModel.incomingEdges() && !edgeModel.outgoingEdges()))
+			g2.setColor(c);
+		else if (spModel.isPointSelected(j)
+				&& (!edgeModel.incomingEdges() && edgeModel.outgoingEdges()))
+			g2.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(),
+					transparency));
+		else
+			g2.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(),
+					transparency));
+	}
+
+	/**
+	 * If the edge should be a mixture of source and target node colour add them
+	 * together
+	 * 
+	 * @param c1
+	 *            source node colour
+	 * @param c2
+	 *            target node colour
+	 * @return mixed colour
+	 */
+	private Color addColors(Color c1, Color c2) {
+		int a1 = c1.getAlpha();
+		int r1 = c1.getRed();
+		int g1 = c1.getGreen();
+		int b1 = c1.getBlue();
+		int a2 = c2.getAlpha();
+		int r2 = c2.getRed();
+		int g2 = c2.getGreen();
+		int b2 = c2.getBlue();
+		int ax = (a1 + a2) / 2;
+		int rx = (r1 + r2) / 2;
+		int gx = (g1 + g2) / 2;
+		int bx = (b1 + b2) / 2;
+		return new Color(rx, gx, bx, ax);
+	}
+		
 	public void drawBezierEdge(Graphics2D g2, double x1, double y1, double x2,
 			double y2) {
 		CubicCurve2D beizerLine;
@@ -145,7 +226,8 @@ public class DrawEdge{
 		Attribute sepAtt = spModel.getSeparationAttribute();
 		int c = (int) spModel.getInstances().instance(i).value(sepAtt);
 		int d = (int) spModel.getInstances().instance(j).value(sepAtt);
-
+		
+		ArrayList<Point2D> centroids = edgeModel.getCentroids();
 		Point2D sourceCentroid = centroids.get(c);
 		Point2D targetCentroid = centroids.get(d);
 
@@ -239,16 +321,17 @@ public class DrawEdge{
 			double x2, double y2, Graphics2D g2, double[] k, double curveFactor) {
 
 		Attribute sepAtt = spModel.getSeparationAttribute();
-		int numClasses = sepAtt.numValues();
-		// int numClasses = spModel.getCurrentBundledAttribute().numValues();
+		 int numClasses = sepAtt.numValues();
+//		int numClasses = spModel.getCurrentBundledAttribute().numValues();
 		int c = (int) spModel.getInstances().instance(i).value(sepAtt);
 		int d = (int) spModel.getInstances().instance(j).value(sepAtt);
 
 		int arrayListPosition = d + (numClasses) * c;
-		System.out.println(k[arrayListPosition]);
 		k[arrayListPosition] = k[arrayListPosition] + 1;
-		System.out.println(k[arrayListPosition]);
 
+		ArrayList<Point2D> centroids = edgeModel.getCentroids();
+		ArrayList<PVector> vectors = edgeModel.getVectors();
+		
 		PVector direction = vectors.get(arrayListPosition);
 		direction.normalize();
 		PVector normal = new PVector(direction.y, -direction.x);
@@ -404,12 +487,15 @@ public class DrawEdge{
 		// double radius = 0.5;
 
 		Attribute sepAtt = spModel.getSeparationAttribute();
-		int numClasses = spModel.getCurrentBundledAttribute().numValues();
+		int numClasses = edgeModel.getCurrentBundledAttribute().numValues();
 		int c = (int) spModel.getInstances().instance(i).value(sepAtt);
 		int d = (int) spModel.getInstances().instance(j).value(sepAtt);
 
 		int arrayListPosition = d + (numClasses) * c;
 		k[arrayListPosition] = k[arrayListPosition] + 1;
+		
+		ArrayList<Point2D> centroids = edgeModel.getCentroids();
+		ArrayList<PVector> vectors = edgeModel.getVectors();
 
 		PVector direction = vectors.get(arrayListPosition);
 		direction.normalize();
@@ -475,7 +561,8 @@ public class DrawEdge{
 		c2p2.add(new PVector((float) tcx, (float) tcy));
 		c2p2.add(n2);
 
-		float mpx = bezierMidPoints.get(arrayListPosition).x;
+		ArrayList<PVector> bezierMidPoints = edgeModel.getBezierMidPoints();
+		float mpx = bezierMidPoints .get(arrayListPosition).x;
 		float mpy = bezierMidPoints.get(arrayListPosition).y;
 
 		double bmpx = (0.125 * (scx + tcx)) + (0.375 * (c1p2.x + c2p2.x));
@@ -746,7 +833,4 @@ public class DrawEdge{
 			}
 		}
 	}
-}
-
-
 }

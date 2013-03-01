@@ -16,12 +16,12 @@ import javax.swing.SwingUtilities;
 public class ProjectionTableTab extends JPanel implements ActionListener  {
 	
 	private ScatterPlotModel spModel;
-	private ScatterPlotControlPanel2 spcp;
+	private ScatterPlotControlPanel spcp;
 	private ProjectionTable projectionTable;
 	private JButton removeAttributeButton;
 	private JButton undoButton;
 	
-	public ProjectionTableTab(ScatterPlotControlPanel2 spcp, ScatterPlotModel spModel) {
+	public ProjectionTableTab(ScatterPlotControlPanel spcp, ScatterPlotModel spModel) {
 		
 		super();
 		this.spModel = spModel;

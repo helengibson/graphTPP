@@ -125,7 +125,9 @@ public class GraphARFFImporterGUI extends JFrame implements ActionListener{
 				String filePath = fileLocation.getText();
 				
 				parent.setData(new GraphARFFImporter().importProjectionData(filePath, edgesProjectionRadio.isSelected()));
-				((ScatterPlotModel)parent.getModel()).loadGraph(new GraphImporter().importGraph(filePath, parent.getModel().getInstances()));
+			((ScatterPlotModel) parent.getModel())
+					.loadGraph(new GraphImporter().importGraph(filePath, parent
+							.getModel().getInstances()));
 				
 				this.dispose();
 			}
