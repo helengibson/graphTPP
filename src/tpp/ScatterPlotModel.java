@@ -704,6 +704,10 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 	public GraphModel getGraphModel(){
 		return graphModel;
 	}
+	
+	public void updateGraphModel(GraphModel updatedGraphModel) {
+		graphModel = updatedGraphModel;
+	}
 
 	// Remove the graph from the model
 	public void removeGraph() {

@@ -43,6 +43,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.apache.batik.svggen.font.Point;
+import org.apache.commons.math.optimization.fitting.CurveFitter;
 
 import weka.classifiers.Classifier;
 import weka.core.Attribute;
@@ -131,10 +132,10 @@ public class ScatterPlotControlPanel extends JPanel implements
 		splitter.setOneTouchExpandable(true);
 		// splitter.setDividerLocation(300);
 		splitter.setResizeWeight(0.8);
-		splitter.setDividerLocation(splitter.getSize().width - 300);
+		splitter.setDividerLocation(splitter.getSize().width - 350);
 
 		// Provide a preferred size for the split pane.
-		splitter.setPreferredSize(new Dimension(150, 300));
+		splitter.setPreferredSize(new Dimension(200, 350));
 
 		addSelectionPanel();
 
@@ -217,13 +218,13 @@ public class ScatterPlotControlPanel extends JPanel implements
 		selectCombo = AttributeCombo.buildCombo(spModel,
 				AttributeCombo.ALL_ATTRIBUTES, true);
 		selectCombo.setMinimumSize(min);
-		selectCombo.setSelectedAttribute(pointModel.getSelectAttribute());
 		selectCombo.addActionListener(this);
 		selectCombo
 				.setToolTipText("Choose which attribute is used to color and select points");
 		JLabel selectAttributeSelectorLabel = new JLabel("Color points by: ",
 				JLabel.RIGHT);
 		selectCombo.setEditable(true);
+
 
 		selectSeparateGrid.gridx = 0;
 		selectSeparateGrid.gridwidth = 1;
@@ -336,8 +337,8 @@ public class ScatterPlotControlPanel extends JPanel implements
 
 		clusterOptionsCB = new JComboBox(attributeSelectionOptions);
 		clusterOptionsCB.addActionListener(this);
-		clusterOptionsCB
-				.setToolTipText("Choose the attributes that will be used in the projection");
+		clusterOptionsCB.setToolTipText("Choose the attributes that will be used in the projection");
+//		clusterOptionsCB.setSelectedItem(currentClusterSelection);
 
 		clusterButton = new JButton("Create clusters:");
 		clusterButton.addActionListener(this);
@@ -369,6 +370,7 @@ public class ScatterPlotControlPanel extends JPanel implements
 				AttributeSelector selector = new AttributeSelector(
 						spModel, this);
 			}
+//			currentClusterSelection = clusterOptionsCB.getSelectedItem();
 		}
 
 		if (event.getSource() == clusterButton) {

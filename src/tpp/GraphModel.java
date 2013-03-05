@@ -12,7 +12,7 @@ public class GraphModel {
 	private int[] nodeDegree;
 	private int[] inDegree;
 	private int[] outDegree;
-	private int[] degree = null;
+	int[] degree;
 	int edgeAttributeIndex;
 
 	public GraphModel(Graph graph, ScatterPlotModel spModel){
@@ -40,7 +40,8 @@ public class GraphModel {
 					currentDegree++;
 				if(cnxn.getTargetInstance() == currentNode)
 					currentDegree++;
-			}
+			} 
+			System.out.println(i + " : "+ currentDegree);
 			nodeDegree[i] = currentDegree;
 		}
 		return nodeDegree;	
@@ -131,12 +132,13 @@ public class GraphModel {
 	}
 	
 	public int[] getDegree() {
+		System.out.println("Degree is : " + degree);
 		return degree;
 	}
 	
 	/** Set the size attribute to be node degree */
-	public void setGraphSizeAttribute(Graph graph, int index) {
-
+	public void setGraphSizeAttribute(int index) {
+		System.out.println("index is: "+index);
 		// create an array with the chosen degree of each node
 		switch (index) {
 		case 0:
@@ -167,9 +169,10 @@ public class GraphModel {
 				if (degree[i] > highest)
 					highest = degree[i];
 			}
+			spModel.updateGraphModel(this);
 			spModel.getPointModel().setSizeOnDegree(degree, lowest, highest);
+			
 		}
-		spModel.fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
 	}
 	
 	

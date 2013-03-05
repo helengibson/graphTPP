@@ -45,11 +45,11 @@ public class Point {
 		c = pointColor();
 		x = spModel.getView().get(point, 0) + noise.get(point, 0);
 		y = spModel.getView().get(point, 1) + noise.get(point, 1);
-		graphModel = spModel.getGraphModel();
 		
 		double markerMin = pointModel.getMinMarkerSize();
 		double markerRange = pointModel.getMarkerRange();
-		
+		graphModel= spModel.getGraphModel();
+				
 		// Size of the marker depends on size attribute
 		if (pointModel.getSizeAttribute() == null && graphModel.getDegree() == null) {
 			area = pointModel.getScaledMarkerSize();
@@ -91,7 +91,7 @@ public class Point {
 						transparency));
 
 			// shape/fill of the marker depends on respective attributes
-			double size = Math.sqrt((area/transform.getScaleX())/Math.PI);
+			double size = Math.sqrt((area/g2.getTransform().getScaleX())/Math.PI);
 
 			if (pointModel.getShapeAttribute() == null)
 				marker = MarkerFactory.buildMarker(0, x, y, size);

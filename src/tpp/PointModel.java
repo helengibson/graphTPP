@@ -33,6 +33,7 @@ public class PointModel {
 	double sizeAttributeLowerBound;
 	double sizeAttributeUpperBound;
 
+
 	public PointModel(ScatterPlotModel spModel) {
 		this.spModel = spModel;
 	}
@@ -86,7 +87,7 @@ public class PointModel {
 	}
 	
 	public void setMinMarkerSize() {
-		minMarkerSize = scaledMarkerSize * 0.05;
+		minMarkerSize = scaledMarkerSize * 0.5;
 	}
 	
 	public double getMinMarkerSize() {
@@ -100,7 +101,7 @@ public class PointModel {
 	public double getMarkerRadius() {
 		return markerRadius;
 	}
-			
+				
 	public void showLabels(boolean b) {
 		labels = b;
 		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
@@ -197,7 +198,6 @@ public class PointModel {
 	}
 	
 	public void setSizeOnDegree(int[] degree, double lowest, double highest) {
-
 		// assign these values to the sizing bounds
 		double v;
 		sizeAttributeLowerBound = lowest;
@@ -209,6 +209,7 @@ public class PointModel {
 			if (v < sizeAttributeLowerBound)
 				sizeAttributeLowerBound = v;
 		}
+		spModel.fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
 	}
 	
 	public void resetSizes(Attribute sizeAttribute) {

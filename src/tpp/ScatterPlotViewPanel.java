@@ -240,6 +240,7 @@ public class ScatterPlotViewPanel extends JPanel implements
 				int width, int height) {
 			
 			PointModel pointModel = spModel.getPointModel();
+			GraphModel graphModel = spModel.getGraphModel();
 			pointModel.setScaledMarkerSize(width);
 			pointModel.setMinMarkerSize();
 			pointModel.setMarkerRange();
@@ -329,7 +330,7 @@ public class ScatterPlotViewPanel extends JPanel implements
 
 				// draw the points/nodes
 				if (spModel.showGraph()) {
-					ArrayList<Integer> allPoints = orderPoints(spModel.getGraphModel());
+					ArrayList<Integer> allPoints = orderPoints(graphModel);
 					for (int p : allPoints) {
 						Point point = new Point(spModel, pointModel, p);
 						point.drawPoint(g2, transform);

@@ -725,8 +725,7 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		if (event.getSource() == graphSizeCombo) {
 			// sizeCombo.setSelectedIndex(0);
 			pointModel.setSizeAttribute(null);
-			graphModel.setGraphSizeAttribute(graph,
-					graphSizeCombo.getSelectedIndex());
+			graphModel.setGraphSizeAttribute(graphSizeCombo.getSelectedIndex());
 		}
 
 		if (event.getSource() == showLabelsCheckBox) {
