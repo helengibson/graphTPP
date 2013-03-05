@@ -218,11 +218,13 @@ public class ScatterPlotControlPanel extends JPanel implements
 		selectCombo = AttributeCombo.buildCombo(spModel,
 				AttributeCombo.ALL_ATTRIBUTES, true);
 		selectCombo.setMinimumSize(min);
+		selectCombo.setSelectedAttribute(pointModel.getSelectAttribute());
 		selectCombo.addActionListener(this);
 		selectCombo
 				.setToolTipText("Choose which attribute is used to color and select points");
 		JLabel selectAttributeSelectorLabel = new JLabel("Color points by: ",
 				JLabel.RIGHT);
+
 		selectCombo.setEditable(true);
 
 
@@ -468,10 +470,9 @@ public class ScatterPlotControlPanel extends JPanel implements
 				removeCurrentNumeric.setInputFormat(currentInstances);
 				Instances nonNumericInstances = Filter.useFilter(currentInstances, removeCurrentNumeric);	
 				
-				
+				Remove remove = new Remove();
+				String indices = "";
 				if(!projectionAttributeOption.equals("All")){
-					Remove remove = new Remove();
-					String indices = "";
 					if (projectionAttributeOption.equals("Attributes")){
 						for (int a = 0; a < filteredInstances.numAttributes(); a++) {
 							String name = filteredInstances.attribute(a).name();
@@ -493,26 +494,34 @@ public class ScatterPlotControlPanel extends JPanel implements
 					} else if (projectionAttributeOption.equals("Custom")) {
 						int[] numIndices = getSelectedIndices();
 						for (int i : numIndices) {
-//							indices = indices + (i + 1) + ",";
 							if (filteredInstances.attribute(i).isNumeric()){
 								indices = indices + (i + 1) + ",";
 								attributesExist = true;
 							}
 						} 
 					}
+				} else if (projectionAttributeOption.equals("All")) {
+					for (int a = 0; a < filteredInstances.numAttributes(); a++) {
+						if (filteredInstances.attribute(a).isNumeric()){ // want numeric so dont include the non-numeric
+							indices = indices + (a + 1) + ","; // we'll invert later so it should be the opposite
+						}
+						attributesExist = true;
+					} 
 					
-					if(attributesExist){
-						indices = indices.substring(0, indices.length() - 1);
-						remove.setAttributeIndices(indices);
-						remove.setInvertSelection(true);
-						remove.setInputFormat(filteredInstances);
-						filteredInstances = Filter.useFilter(filteredInstances, remove);
-						filteredInstances = Instances.mergeInstances(filteredInstances, nonNumericInstances);
-					} else {
-						JOptionPane.showMessageDialog(this, "No attributes available to project on, \n" +
-								"defaulting to using all attributes.");
+				} else {
+					JOptionPane.showMessageDialog(this, "No attributes available to project on, \n" +
+							"defaulting to using all attributes.");
 					}
-				}
+				
+				if(attributesExist){
+					indices = indices.substring(0, indices.length() - 1);
+					remove.setAttributeIndices(indices);
+					remove.setInvertSelection(true);
+					remove.setInputFormat(filteredInstances);
+					filteredInstances = Filter.useFilter(filteredInstances, remove);
+					filteredInstances = Instances.mergeInstances(filteredInstances, nonNumericInstances);
+				}		
+				
 				spModel.setInstances(filteredInstances, true);
 				System.out.println("filter zero instances: " +spModel.zeroInstances());
 				if(spModel.zeroInstances())

@@ -68,8 +68,5 @@ public class AttributeCombo extends JComboBox {
 		setSelectedIndex(attributes.indexOf(at));
 		repaint();
 	}
-	
-	public Vector<Attribute> getAttributes() {
-		return attributes;
-	}
+
 }
