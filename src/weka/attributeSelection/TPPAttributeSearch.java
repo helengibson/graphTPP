@@ -178,7 +178,7 @@ public class TPPAttributeSearch extends ASSearch implements WindowListener,
 
 		// construct a TPP model from this data
 		model = new ScatterPlotModel(numOutputDimensions);
-		model.setInstances(filteredData, false, null);
+		model.setInstances(filteredData, false);
 		model.setSeparationAttribute(model.getInstances().classAttribute());
 		model.normalizeDataUnit();
 		model.randomProjection();

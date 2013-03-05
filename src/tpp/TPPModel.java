@@ -134,18 +134,17 @@ public class TPPModel implements Serializable, Cloneable {
 	 * Set the data for this model. The projection will default to PCA (if there
 	 * are sufficient resources to compute this) or a random projection
 	 */
-	public void setInstances(Instances in, boolean filtered, ArrayList keptIndices) throws Exception {
-		initialise(in, false, null);
+	public void setInstances(Instances in, boolean filtered) throws Exception {
+		initialise(in, false);
 		fireModelChanged(TPPModelEvent.DATA_SET_CHANGED);
 	}
 
 	/**
 	 * 
 	 * @param filtered TODO
-	 * @param keptIndices TODO
 	 * @throws Exception
 	 */
-	protected void initialise(Instances ins, boolean filtered, ArrayList keptIndices) throws Exception {
+	protected void initialise(Instances ins, boolean filtered) throws Exception {
 		
 		Instances deepInstances = getDeepInstances();
 		Instances currentInstances = getInstances();
@@ -221,10 +220,8 @@ public class TPPModel implements Serializable, Cloneable {
 			// user is currently seeing and the one which they are now requesting
 
 			if (CollectionUtils.isEqualCollection(currentAttributeNames, filteredAttributeNames)) {
-				System.out.println("The same");
 				project();
 			} else if (CollectionUtils.isProperSubCollection(filteredAttributeNames,currentAttributeNames)){
-				System.out.println("its a subset");
 				int[] cols = {0,1};
 				int[] filteredIndices = new int[filteredAttributes.size()];
 				int i = 0;
@@ -236,7 +233,6 @@ public class TPPModel implements Serializable, Cloneable {
 				projection = new LinearProjection(projection.getMatrix(filteredIndices, cols));
 				project();
 			} else if (CollectionUtils.containsAny(currentAttributeNames, filteredAttributeNames)){
-				System.out.println("Its a partial subset");
 				double[][] newProjection = new double[filteredAttributes.size()][2];
 				int i = 0;
 				for(Attribute at: filteredAttributes){
@@ -252,12 +248,10 @@ public class TPPModel implements Serializable, Cloneable {
 					i++;
 				}
 					Matrix projectionMatrix = new Matrix(newProjection);
-					System.out.println(projectionMatrix);
 					projection = new LinearProjection(projectionMatrix);
 					project();
 					
 			} else if (CollectionUtils.intersection(currentAttributeNames, filteredAttributeNames).isEmpty()) {
-				System.out.println("yeah they're completely different ;-)");
 				initialiseProjection();
 				project();
 				PCA();
@@ -383,7 +377,7 @@ public class TPPModel implements Serializable, Cloneable {
 			removeAttribute(nominal);
 
 			// Reinitialise on the new numeric data
-			initialise(instances, false, null);
+			initialise(instances, false);
 		}
 		fireModelChanged(TPPModelEvent.DATA_STRUCTURE_CHANGED);
 	}
@@ -1170,7 +1164,7 @@ public class TPPModel implements Serializable, Cloneable {
 		TPPModel clone = new TPPModel(numViewDimensions);
 		Instances cloneInstances = new Instances(instances);
 		try {
-			clone.setInstances(cloneInstances, false, null);
+			clone.setInstances(cloneInstances, false);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

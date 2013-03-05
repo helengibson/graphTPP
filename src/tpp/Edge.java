@@ -6,9 +6,11 @@ package tpp;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
+import java.awt.geom.Line2D.Double;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -21,21 +23,32 @@ import weka.core.matrix.Matrix;
 
 /**
  * @author Helen
- *
+ * A class which controls the drawing of each edge and the associates calculations to go with it. 
  */
 public class Edge {
 	
 	private ScatterPlotModel spModel;
 	private EdgeModel edgeModel;
 	private Connection cnxn;
-	private Line2D arrowLine;
+	private Line2D.Double arrowLine;
 
+	/**
+	 * Initiates the edge
+	 * @param cnxn The edge that we are drawing. Includes source node, target node and weight.
+	 * @param edgeModel The model that holds all the parameters for drawing the edges
+	 * @param spModel The model that holds the higher level parameters
+	 */
 	public Edge(Connection cnxn, EdgeModel edgeModel, ScatterPlotModel spModel) {
 		this.edgeModel = edgeModel;	
 		this.cnxn = cnxn;
 		this.spModel = spModel;
 	}
 
+	/**
+	 * Sets up drawing the edge depending on whether edges are filtered by wieght or not. 
+	 * @param g The Graphics2D context for the scatterplotviewplan
+	 * @param lineWidth what the current strokewidth for  edges has been defined at. 
+	 */
 	public void drawEdge(Graphics2D g, float lineWidth) {
 		
 		// If we're filtering the edges by weight then only draw those edges that fall within the weight range
@@ -47,14 +60,19 @@ public class Edge {
 			drawEdge(cnxn, g, lineWidth);
 	}
 	
+	/**
+	 * 
+	 * @param cnxn the connection drawn
+	 * @param g2 the graphics 2D context 
+	 * @param lineWidth the current linewidth used. 
+	 */
 	private void drawEdge(Connection cnxn, Graphics2D g2, float lineWidth) {
 		
 		double x1,y1,x2,y2;
-		Line2D line;
+		Line2D.Double line;
 		int i, j;
 		Color c;
 		
-		System.out.println(spModel.getTransparency());
 		int transparency = spModel.getTransparency();
 		double curveFactor = edgeModel.getCurveFactor();
 		double[] clusterEdgesDrawn = edgeModel.getClusterEdgesDrawn();
@@ -67,7 +85,6 @@ public class Edge {
 
 			if (source != null && target != null) {
 				i = cnxn.getSourceIndex();
-
 				x1 = spModel.getView().get(i, 0) + noise.get(i, 0);
 				y1 = spModel.getView().get(i, 1) + noise.get(i, 1);
 
@@ -110,7 +127,7 @@ public class Edge {
 						line = new Line2D.Double(x1, y1, x2, y2);
 						g2.draw(line);
 						if (edgeModel.arrowedEdges()) {
-							arrowLine = line;
+							drawArrowHead(g2, line, j);
 						}
 					}
 				}
@@ -118,7 +135,37 @@ public class Edge {
 		}
 	}
 	
-	public Line2D getArrowLine() {
+	public void drawArrowHead(Graphics2D g2, Line2D line, int j) {
+		AffineTransform transform = spModel.getTransform();
+		double size;
+		PointModel pointModel = spModel.getPointModel();
+		GraphModel graphModel = spModel.getGraphModel();
+		
+		double markerRadius = pointModel.getMarkerRadius();
+		double markerMin = pointModel.getMinMarkerSize();
+		double markerRange = pointModel.getMarkerRange();
+		
+		if (pointModel.getSizeAttribute() == null && graphModel.getDegree() == null) {
+			size = Math.sqrt(markerRadius / Math.PI);
+		} else if (graphModel.getDegree() != null) {
+			double area = (markerMin + markerRange
+					* (graphModel.getDegree()[j] - pointModel.sizeAttributeLowerBound)
+					/ (pointModel.sizeAttributeUpperBound - pointModel.sizeAttributeLowerBound))
+					/ transform.getScaleX();
+			size = Math.sqrt(area / Math.PI);
+		} else {
+			double area = (markerMin + markerRange
+					* (spModel.getInstances().instance(j).value(pointModel
+									.getSizeAttribute()) - pointModel.sizeAttributeLowerBound)
+					/ (pointModel.sizeAttributeUpperBound - pointModel.sizeAttributeLowerBound))
+					/ transform.getScaleX();
+			size = Math.sqrt(area / Math.PI);
+		}
+		g2.fill(MarkerFactory.buildArrowHead(line, size,
+				true));
+	}
+	
+	public Line2D.Double getArrowLine() {
 		return arrowLine;
 	}
 
@@ -188,7 +235,7 @@ public class Edge {
 		return new Color(rx, gx, bx, ax);
 	}
 		
-	public void drawBezierEdge(Graphics2D g2, double x1, double y1, double x2,
+	private void drawBezierEdge(Graphics2D g2, double x1, double y1, double x2,
 			double y2) {
 		CubicCurve2D beizerLine;
 		PVector direction = new PVector((float) x2, (float) y2);
@@ -247,74 +294,74 @@ public class Edge {
 		// ------------------------------------------------------
 		// Edges meet at the midpoint only, composed of two curves
 
-		// if(c == d) {
-		// drawBezierEdge(g2, x1, y1, x2, y2);
-		// } else {
+		 if(c == d) {
+			 drawBezierEdge(g2, x1, y1, x2, y2);
+		 } else {
 
-		PVector p1 = new PVector((float) mpx, (float) mpy);
-		p1.sub(new PVector((float) x1, (float) y1));
+			PVector p1 = new PVector((float) mpx, (float) mpy);
+			p1.sub(new PVector((float) x1, (float) y1));
+	
+			PVector absP1 = new PVector((float) Math.abs(p1.x),
+					(float) Math.abs(p1.y));
+			absP1.normalize();
+	
+			float lengthp1 = p1.mag();
+			p1.normalize();
+	
+			float factorp1 = 0.2f * lengthp1;
+	
+			// normal vector to the edge
+			PVector n = new PVector(absP1.y, -absP1.x);
+			n.mult(factorp1);
+	
+			// first control point
+			PVector c1p1 = new PVector(p1.x, p1.y);
+			c1p1.mult(factorp1);
+			c1p1.add(new PVector((float) x1, (float) y1));
+			c1p1.add(n);
+	
+			// second control point
+			PVector c2p1 = new PVector(p1.x, p1.y);
+			c2p1.mult(-factorp1);
+			c2p1.add(new PVector((float) mpx, (float) mpy));
+			c2p1.add(n);
+	
+			PVector p4 = new PVector((float) mpx, (float) mpy); // second centroid
+			// to target node
+			p4.sub(new PVector((float) x2, (float) y2));
+	
+			PVector absP4 = new PVector((float) Math.abs(p4.x),
+					(float) Math.abs(p4.y));
+			absP4.normalize();
+	
+			float lengthp4 = p4.mag();
+			p4.normalize();
+	
+			float factorp4 = 0.2f * lengthp4;
+	
+			// normal vector to the edge
+			PVector n4 = new PVector(-absP4.y, absP4.x);
+			n4.mult(factorp4);
+	
+			// first control point
+			PVector c1p4 = new PVector(p4.x, p4.y);
+			c1p4.mult(-factorp4);
+			c1p4.add(new PVector((float) mpx, (float) mpy));
+			c1p4.add(n4);
+	
+			// // second control point
+			PVector c2p4 = new PVector(p4.x, p4.y);
+			c2p4.mult(factorp4);
+			c2p4.add(new PVector((float) x2, (float) y2));
+			c2p4.add(n4);
+	
+			Path2D.Double path = new Path2D.Double();
+			path.moveTo(x1, y1);
+			path.curveTo(c1p1.x, c1p1.y, c2p1.x, c2p1.y, mpx, mpy);
+			path.curveTo(c1p4.x, c1p4.y, c2p4.x, c2p4.y, x2, y2);
+			g2.draw(path);
 
-		PVector absP1 = new PVector((float) Math.abs(p1.x),
-				(float) Math.abs(p1.y));
-		absP1.normalize();
-
-		float lengthp1 = p1.mag();
-		p1.normalize();
-
-		float factorp1 = 0.2f * lengthp1;
-
-		// normal vector to the edge
-		PVector n = new PVector(absP1.y, -absP1.x);
-		n.mult(factorp1);
-
-		// first control point
-		PVector c1p1 = new PVector(p1.x, p1.y);
-		c1p1.mult(factorp1);
-		c1p1.add(new PVector((float) x1, (float) y1));
-		c1p1.add(n);
-
-		// second control point
-		PVector c2p1 = new PVector(p1.x, p1.y);
-		c2p1.mult(-factorp1);
-		c2p1.add(new PVector((float) mpx, (float) mpy));
-		c2p1.add(n);
-
-		PVector p4 = new PVector((float) mpx, (float) mpy); // second centroid
-		// to target node
-		p4.sub(new PVector((float) x2, (float) y2));
-
-		PVector absP4 = new PVector((float) Math.abs(p4.x),
-				(float) Math.abs(p4.y));
-		absP4.normalize();
-
-		float lengthp4 = p4.mag();
-		p4.normalize();
-
-		float factorp4 = 0.2f * lengthp4;
-
-		// normal vector to the edge
-		PVector n4 = new PVector(-absP4.y, absP4.x);
-		n4.mult(factorp4);
-
-		// first control point
-		PVector c1p4 = new PVector(p4.x, p4.y);
-		c1p4.mult(-factorp4);
-		c1p4.add(new PVector((float) mpx, (float) mpy));
-		c1p4.add(n4);
-
-		// // second control point
-		PVector c2p4 = new PVector(p4.x, p4.y);
-		c2p4.mult(factorp4);
-		c2p4.add(new PVector((float) x2, (float) y2));
-		c2p4.add(n4);
-
-		Path2D.Double path = new Path2D.Double();
-		path.moveTo(x1, y1);
-		path.curveTo(c1p1.x, c1p1.y, c2p1.x, c2p1.y, mpx, mpy);
-		path.curveTo(c1p4.x, c1p4.y, c2p4.x, c2p4.y, x2, y2);
-		g2.draw(path);
-
-		// }
+		 }
 	}
 
 	private void drawBundledEdges(int i, int j, double x1, double y1,

@@ -26,6 +26,7 @@ import weka.gui.explorer.ExplorerDefaults;
 public class AdvancedOptionsTab extends JPanel implements ActionListener {
 	
 	private ScatterPlotModel spModel;
+	private PointModel pointModel;
 	
 	private AttributeCombo seriesIndexCombo;
 	private AttributeCombo seriesIdCombo;
@@ -46,9 +47,10 @@ public class AdvancedOptionsTab extends JPanel implements ActionListener {
 	
 	private Border raisedetched = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
 	
-	public AdvancedOptionsTab(ScatterPlotModel spModel) {
+	public AdvancedOptionsTab(ScatterPlotModel spModel, PointModel pointModel) {
 		super();
 		this.spModel = spModel;
+		this.pointModel = pointModel;
 		init();
 		setVisible(true);
 	}
@@ -247,8 +249,8 @@ public class AdvancedOptionsTab extends JPanel implements ActionListener {
 						(Classifier) classifierChooser.getValue());
 				// and fill the points by the error
 				spModel.setColourAttribute(classification[0]);
-				spModel.setSelectAttribute(classification[0]);
-				spModel.setFillAttribute(classification[1]);
+				pointModel.setSelectAttribute(classification[0]);
+				pointModel.setFillAttribute(classification[1]);
 				init();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block

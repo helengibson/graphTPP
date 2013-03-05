@@ -16,6 +16,7 @@ public class SelectedAttributesTableTab extends JPanel {
 	private ScatterPlotModel spModel;
 	private ScatterPlotControlPanel spcp;
 	private SelectedAttributesTable selectionTable = null;
+	private PointModel pointModel;
 
 	public SelectedAttributesTableTab(ScatterPlotControlPanel spcp,
 			ScatterPlotModel spModel) {
@@ -23,6 +24,7 @@ public class SelectedAttributesTableTab extends JPanel {
 		super();
 		this.spModel = spModel;
 		this.spcp = spcp;
+		pointModel = spModel.getPointModel();
 		init();
 		setVisible(true);
 		
@@ -81,7 +83,7 @@ public class SelectedAttributesTableTab extends JPanel {
 					spcp.selectCombo.setSelectedIndex(attributeIndex + 1);
 					spModel.setSeparationAttribute(spModel.getInstances().attribute(attributeIndex));
 					spModel.setColourAttribute(spModel.getInstances().attribute(attributeIndex));
-					spcp.separateButton.setEnabled(spModel.getSelectAttribute() != null && spModel.getSelectAttribute().isNominal());
+					spcp.separateButton.setEnabled(pointModel.getSelectAttribute() != null && pointModel.getSelectAttribute().isNominal());
 					revalidate();
 					repaint();
 				}

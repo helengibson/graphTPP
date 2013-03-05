@@ -29,6 +29,7 @@ import weka.gui.explorer.ExplorerDefaults;
 public class ViewOptionsTab extends JPanel implements ActionListener, ChangeListener {
 	
 	private ScatterPlotModel spModel;
+	private PointModel pointModel;
 	
 	private AttributeCombo sizeCombo;
 	private AttributeCombo fillCombo;
@@ -50,6 +51,7 @@ public class ViewOptionsTab extends JPanel implements ActionListener, ChangeList
 		
 		super();
 		this.spModel = spModel;
+		pointModel = spModel.getPointModel();
 		init();
 		setVisible(true);
 		
@@ -82,7 +84,7 @@ public class ViewOptionsTab extends JPanel implements ActionListener, ChangeList
 		// add size attribute selector
 		sizeCombo = AttributeCombo.buildCombo(spModel, AttributeCombo.NUMERIC_ATTRIBUTES, true);
 		sizeCombo.setMinimumSize(min);
-		sizeCombo.setSelectedAttribute(spModel.getSizeAttribute());
+		sizeCombo.setSelectedAttribute(pointModel.getSizeAttribute());
 		sizeCombo.addActionListener(this);
 		sizeCombo.setToolTipText("Choose which attribute is used to determine the size of each point");
 		
@@ -104,7 +106,7 @@ public class ViewOptionsTab extends JPanel implements ActionListener, ChangeList
 		// add fill attribute selector
 		fillCombo = AttributeCombo.buildCombo(spModel, AttributeCombo.NOMINAL_ATTRIBUTES, true);
 		fillCombo.setMinimumSize(min);
-		fillCombo.setSelectedAttribute(spModel.getFillAttribute());
+		fillCombo.setSelectedAttribute(pointModel.getFillAttribute());
 		fillCombo.addActionListener(this);
 		fillCombo.setToolTipText("Choose which attribute is used to determine whether each point is filled");
 		
@@ -127,7 +129,7 @@ public class ViewOptionsTab extends JPanel implements ActionListener, ChangeList
 		
 		shapeCombo = AttributeCombo.buildCombo(spModel, AttributeCombo.NOMINAL_ATTRIBUTES, true);
 		shapeCombo.setMinimumSize(min);
-		shapeCombo.setSelectedAttribute(spModel.getShapeAttribute());
+		shapeCombo.setSelectedAttribute(pointModel.getShapeAttribute());
 		shapeCombo.addActionListener(this);
 		shapeCombo.setToolTipText("Choose which attribute is used to determine the shape of each point");
 		
@@ -155,9 +157,8 @@ public class ViewOptionsTab extends JPanel implements ActionListener, ChangeList
 		grid.gridwidth = 1;
 		
 		panel.add(markerSizeLabel, grid);
-		
-		markerSlider = new JSlider(1, (int) (spModel.MARKER_DEFAULT * 2000), (int) (spModel.MARKER_DEFAULT * 1000));
-		markerSlider.setValue((int) (spModel.getMarkerSize() * 1000));
+		markerSlider = new JSlider(1, (int) (PointModel.MARKER_DEFAULT * 2000), (int) (PointModel.MARKER_DEFAULT * 1000));
+		markerSlider.setValue((int) (spModel.getPointModel().getMarkerSize() * 1000));
 		markerSlider.addChangeListener(this);
 		markerSlider.setToolTipText("Change the average size of the points");
 		
@@ -252,7 +253,7 @@ public class ViewOptionsTab extends JPanel implements ActionListener, ChangeList
 				classColors = ColourScheme.getPaired();
 			if(s.equals("GnBu")){
 				System.out.println("GnBu selected");
-				Attribute at = spModel.getSelectAttribute();
+				Attribute at = pointModel.getSelectAttribute();
 				System.out.println("Current attribute is " + at.toString());
 				Enumeration classValues = at.enumerateValues();
 				int b = 0;
@@ -317,13 +318,13 @@ public class ViewOptionsTab extends JPanel implements ActionListener, ChangeList
 	public void actionPerformed(ActionEvent event) {
 		
 		if (event.getSource() == sizeCombo)
-			spModel.setSizeAttribute(sizeCombo.getSelectedAttribute());
+			pointModel.setSizeAttribute(sizeCombo.getSelectedAttribute());
 		
 		if (event.getSource() == fillCombo)
-			spModel.setFillAttribute(fillCombo.getSelectedAttribute());
+			pointModel.setFillAttribute(fillCombo.getSelectedAttribute());
 
 		if (event.getSource() == shapeCombo)
-			spModel.setShapeAttribute(shapeCombo.getSelectedAttribute());
+			pointModel.setShapeAttribute(shapeCombo.getSelectedAttribute());
 				
 		if ((event.getSource() == backgroundCB) || (event.getSource() == spectrumCB) || (event.getSource() == classCB)) {
 			applyColorScheme(spModel, (String)backgroundCB.getSelectedItem());
@@ -343,7 +344,7 @@ public class ViewOptionsTab extends JPanel implements ActionListener, ChangeList
 	public void stateChanged(ChangeEvent event) {
 		
 		if (markerSlider == (JSlider) event.getSource())
-			spModel.setMarkerSize(markerSlider.getValue() / 1000d);
+			spModel.getPointModel().setMarkerSize(markerSlider.getValue() / 1000d);
 		
 	}
 

@@ -33,10 +33,11 @@ import weka.core.Instances;
 
 /**
  * 
- * @author Helen Uses code from AttributeCombo to load a Multiple interval
- *         selection JList so that the user can select the attributes they want
- *         to include in the projection. Ultimately any non-numeric attributes
- *         will be excluded anyway
+ * @author Helen 
+ * Uses code from AttributeCombo to load a Multiple interval
+ * selection JList so that the user can select the attributes they want
+ * to include in the projection. Ultimately any non-numeric attributes
+ * will be excluded anyway
  */
 
 public class AttributeSelector extends JFrame implements ActionListener, ListSelectionListener {
@@ -49,7 +50,6 @@ public class AttributeSelector extends JFrame implements ActionListener, ListSel
 	private JTable attributeTable;
 	private JButton OKButton;
 	private int[] selectedIndices;
-//	private JButton CancelButton;
 	private AttributeTableModel attributeTableModel;
 
 	public AttributeSelector(ScatterPlotModel model, ScatterPlotControlPanel cp) {
@@ -62,7 +62,7 @@ public class AttributeSelector extends JFrame implements ActionListener, ListSel
 	}
 
 	private void setup() {
-		this.setSize(200, 400);
+		this.setSize(250, 400);
 		this.setLocation(600, 200);
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
@@ -70,26 +70,6 @@ public class AttributeSelector extends JFrame implements ActionListener, ListSel
 
 	private void initialize() {
 		
-//		attributeListModel =  new DefaultListModel();
-//		
-//		Vector<Attribute> ats = new Vector<Attribute>();
-//		ats = model.getAllAttributes();
-//		
-//		// create labels
-//		Vector<String> labels = new Vector<String>();
-//		for (Attribute at : ats) 
-//			labels.add(at == null ? "None" : at.name());
-//			
-//		
-//		for (String label : labels)
-//			attributeListModel.addElement(label);
-//		
-//		attributeList  = new JList(attributeListModel);
-//		attributeList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-//		attributeList.addListSelectionListener(this);
-//		JScrollPane listScrollPane = new JScrollPane(attributeList);
-//		listScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-				
 		attributeTableModel = new AttributeTableModel(model);
 		attributeTable  = new JTable(attributeTableModel);
 		
@@ -102,28 +82,21 @@ public class AttributeSelector extends JFrame implements ActionListener, ListSel
 		JScrollPane listScrollPane = new JScrollPane(attributeTable);
 		
 		OKButton = new JButton("OK");
-//		CancelButton = new JButton("Cancel");
-		
 		OKButton.addActionListener(this);
-//		CancelButton.addActionListener(this);
 			
 		setLayout(new BorderLayout());
-		
 		add(listScrollPane, BorderLayout.CENTER);
-		
 		add(OKButton, BorderLayout.PAGE_END);				
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == OKButton) {
-//			int[] indices = attributeList.getSelectedIndices();
 			int[] indices = attributeTable.getSelectedRows();
 			int[] modelIndices = new int[indices.length];
 			for (int i = 0; i < indices.length; i++){
 				modelIndices[i] = attributeTable.getRowSorter().convertRowIndexToModel(indices[i]);
 			}
-			System.out.println(modelIndices);
 			cp.setSelectedIndices(modelIndices);
 		}
 		this.dispose();
@@ -139,11 +112,8 @@ public class AttributeSelector extends JFrame implements ActionListener, ListSel
 	class AttributeTableModel extends AbstractTableModel {
 		
 		private static final int COLS = 3;
-
 		public static final int SEQ_COL = 0;
-
 		public static final int ATT_COL = 1;
-
 		public static final int OCC_COL = 2;
 				
 		private String[] columnNames = {" ","Attribute", "Occurences"};
@@ -152,7 +122,6 @@ public class AttributeSelector extends JFrame implements ActionListener, ListSel
 		private ScatterPlotModel model;
 
 		private Vector<String> labels;
-
 		private Vector<Integer> occurrences;
 		
 		public AttributeTableModel(ScatterPlotModel model){
@@ -160,8 +129,6 @@ public class AttributeSelector extends JFrame implements ActionListener, ListSel
 			
 			Vector<Attribute> ats = new Vector<Attribute>();
 			
-//			ats = model.getAllAttributes();
-//			columnData = new Object[ats.size()][3];
 			Instances d = model.getDeepInstances();
 			for (int i = 0; i < d.numAttributes(); i++)
 				ats.add(d.attribute(i));
@@ -173,28 +140,7 @@ public class AttributeSelector extends JFrame implements ActionListener, ListSel
 			
 			// create occurrence values
 			occurrences = new Vector<Integer>();
-			occurrences = getOccurences(d);
-			
-				
-//			
-//			for (String label : labels)
-//				attributeListModel.addElement(label);
-			
-			// For this to work all numeric attributes MUST be listed first
-//			int i = 0;
-//			for(Attribute at : ats){
-//				String attName = at.name();
-//				int attOccurence;
-//				if (at.isNumeric())
-//					attOccurence = model.getOccurences()[i];
-//				else
-//					attOccurence = model.getInstances().size();
-//				columnData[i][0] = i;
-//				columnData[i][1] = attName;
-//				columnData[i][2] = attOccurence;
-//				i++;
-//			}
-			
+			occurrences = getOccurences(d);		
 		}
 		
 		private Vector<Integer> getOccurences(Instances ins) {
@@ -211,7 +157,6 @@ public class AttributeSelector extends JFrame implements ActionListener, ListSel
 					}
 				} else
 					k = ins.size();
-				System.out.println(k);
 				occurenceTotal.add(k);
 			}
 			return occurenceTotal;

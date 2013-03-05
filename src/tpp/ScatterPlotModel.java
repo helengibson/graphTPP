@@ -6,7 +6,6 @@ import java.awt.geom.Point2D;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Random;
@@ -32,26 +31,72 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 	
 	/** The filtered instances */
 	private Instances filteredInstances;
-	
 	private boolean useFilteredInstances = false;
-
 	private boolean zeroInstances = false;
+	
+	/** Noise added to the view to better separate the points */
+	private Matrix noise;
+	private Stack<ScatterPlotModel> snapshots;
+	
+	private PointModel pointModel;
+	private EdgeModel edgeModel;
+	private GraphModel graphModel;
+	
+	/**
+	 * How big is the margin round the points as a proportion of the overall
+	 * window
+	 */
+	private static final double PANEL_MARGIN = .1d; // margin around points as a proportion of screen size
+	private AffineTransform transform; // Affine transform from device space to screen space
+	private int width; // Width of device space
+	private int height; // Height of device space
+	
+	protected boolean showAxes = false;
+	protected boolean[] isAxisSelected;
+	
+	protected boolean showTarget;
+	
+	protected boolean showSeries = false;
+	protected boolean showHierarchicalClustering;
+	
+	protected boolean showGraph = false;
+	protected boolean graphLoaded = false;
+	
+	protected Rectangle rectangle;
+	private static final double MARGIN = 0.1;
 
+	protected int transparencyLevel = 25;
+	protected int currentTransparency;
+	
+	protected ColourScheme colors = ColourScheme.DARK;
+	private String spectrumColor = "Default";
+	private String classColor = "Default";
+	private String bgColor = "Light";
+	private Attribute colourAttribute;
+	double colorAttributeLowerBound;
+	double colorAttributeUpperBound;
+	
+	private DBConnection dbConnection;
+	
 	// == Initialisation ================
 
 	public ScatterPlotModel(int n) {
 		super(n);
 		edgeModel = new EdgeModel(this);
+		pointModel =  new PointModel(this);
+		graphModel = new GraphModel(null, this);
+		pointModel.initialise();
 	}
 
 	/*
+	 * 
 	 */
-	public void setInstances(Instances data, boolean filtered, ArrayList keptIndices) throws Exception {
-		initialise(data, filtered, keptIndices);
+	public void setInstances(Instances data, boolean filtered) throws Exception {
+		initialise(data, filtered);
 	}
 		
-	protected void initialise(Instances ins, boolean filtered, ArrayList keptIndices) throws Exception {
-		super.initialise(ins, filtered, keptIndices);
+	protected void initialise(Instances ins, boolean filtered) throws Exception {
+		super.initialise(ins, filtered);
 		initRetinalAttributes();
 		isAxisSelected = new boolean[getNumDataDimensions()];
 //		if(!projection.getZeroInstances().isEmpty()) {
@@ -62,9 +107,17 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 	public boolean zeroInstances(){
 		return zeroInstances;
 	}
+	
+	public EdgeModel getEdgeModel() {
+		return edgeModel;
+	}
+	
+	public PointModel getPointModel() {
+		return pointModel;
+	}
 
 	// == POINT SELECTION ===========================
-
+	
 	/**
 	 * Select the points whose value of the selection attribute is equal to the
 	 * given value
@@ -74,7 +127,7 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 		if (!addToExistingSelection)
 			unselectPoints();
 		for (int i = 0; i < getNumDataPoints(); i++)
-			if (getInstances().instance(i).stringValue(getSelectAttribute())
+			if (getInstances().instance(i).stringValue(pointModel.getSelectAttribute())
 					.equals(value))
 				selectPoint(i);
 		fireModelChanged(TPPModelEvent.POINT_SELECTION_CHANGED);
@@ -89,19 +142,14 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 		if (!addToExistingSelection)
 			unselectPoints();
 		for (int i = 0; i < getNumDataPoints(); i++)
-			if (getInstances().instance(i).value(getSelectAttribute()) >= min
-					&& getInstances().instance(i).value(getSelectAttribute()) <= max)
+			if (getInstances().instance(i).value(pointModel.getSelectAttribute()) >= min
+					&& getInstances().instance(i).value(pointModel.getSelectAttribute()) <= max)
 				selectPoint(i);
 		fireModelChanged(TPPModelEvent.POINT_SELECTION_CHANGED);
 	}
-
+	
+	
 	// == AXIS SELECTION==================
-
-	/**
-	 * A boolean array that indicates which axes have been selected. The axes
-	 * correspond to the numeric attributes
-	 */
-	protected boolean[] isAxisSelected;
 
 	/** Unselect the axes */
 	public void unselectAxes() {
@@ -131,25 +179,12 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 	}
 
 	public boolean isAxisSelected(int a) {
-//		if (isAxisSelected[a])
-//			System.out.println("selected axes is: " + a);
 		return isAxisSelected[a];
 	}
 
 	public void unselectAxis(int i) {
 		isAxisSelected[i] = false;
 		fireModelChanged(TPPModelEvent.AXIS_SELECTION_CHANGED);
-	}
-
-	/**
-	 * Determine which axis represents the given attribute. If the attribute is
-	 * non-numeric (and hence will not be represented by an axis) then return -1
-	 */
-	public int getAxisForAttribute(Attribute at) {
-		if (at.isNumeric()) {
-
-		}
-		return -1;
 	}
 
 	/** Move the selected axes by the (dx,dy) */
@@ -165,9 +200,7 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 
 	// == COLOR SCHEME ===============================
 
-	protected ColourScheme colors = ColourScheme.DARK;
-
-	/** Get teh color scheme */
+	/** Get the color scheme */
 	public ColourScheme getColours() {
 		return colors;
 	}
@@ -177,147 +210,73 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 		colors = colours;
 		fireModelChanged(TPPModelEvent.COLOR_SCHEME_CHANGED);
 	}
+	
+	/** Set the background colour */
+	public void setBGColor(String selectedItem) {
+		bgColor = selectedItem;
+
+	}
+
+	/** Set the colour to differentiate classes by */
+	public void setClassColor(String selectedItem) {
+		classColor = selectedItem;
+	}
+
+	/** Set the colour spectrum to see the difference in numerical sequences*/
+	public void setSpectrumColor(String selectedItem) {
+		spectrumColor = selectedItem;
+	}
+
+	/** Get the background colour */
+	public String getBGColor() {
+		return bgColor;
+	}
+
+	/** Get the class colour */
+	public String getClassColor() {
+		return classColor;
+	}
+
+	/** Get the spectrum colour */
+	public String getSpectrumColor() {
+		return spectrumColor;
+	}
+
+	/**
+	 * Set the colours depending on if they are chosen to be viewed by class or
+	 * numeric
+	 * @param i
+	 *            the node the colour applies to
+	 * @return
+	 */
+	Color setColor(int i) {
+		Color c = null;
+		if (getColourAttribute() == null) {
+			c = getColours().getForegroundColor();
+		} else if (getColourAttribute().isNominal()) {
+			c = getColours().getClassificationColor(
+					(int) getInstances().instance(i)
+							.value(getColourAttribute()));
+		} else if (getColourAttribute().isNumeric()) {
+			c = getColours().getColorFromSpectrum(
+					getInstances().instance(i)
+							.value(getColourAttribute()),
+					colorAttributeLowerBound,
+					colorAttributeUpperBound);
+		}
+		return c;
+	}
 
 	// == RETINAL ATTRIBUTES ===========================
 
-	/**
-	 * The default size of the markers to display (as a proportion of screen
-	 * size).
+	/** The color attributes, as shape, fill and size are specific to the points
+	 * they are controlled by the pointmodel whilst colour affects both
+	 * points and edges and so is controlled at a higher level here
 	 */
-	static final double MARKER_DEFAULT = 0.01;
-
-	protected double markerSize = MARKER_DEFAULT;
-
-	/** The retinal attributes */
-	private Attribute shapeAttribute, colourAttribute, sizeAttribute,
-			fillAttribute, selectAttribute;
-
-	double colorAttributeLowerBound;
-
-	double colorAttributeUpperBound;
-
-	double sizeAttributeLowerBound;
-
-	double sizeAttributeUpperBound;
-
-	private Stack<ScatterPlotModel> snapshots;
-
-	public Attribute getShapeAttribute() {
-		return shapeAttribute;
-	}
-
-	public Attribute getFillAttribute() {
-		return fillAttribute;
-	}
-
-	public Attribute getSelectAttribute() {
-		return selectAttribute;
-	}
-
 	public Attribute getColourAttribute() {
 		return colourAttribute;
 	}
-
-	public Attribute getSizeAttribute() {
-		return sizeAttribute;
-	}
-
-	public void setSelectAttribute(Attribute selectAttribute) {
-		this.selectAttribute = selectAttribute;
-	}
-
-	public int[] getDegree() {
-		return degree;
-	}
-
-	/*
-	 * Set which attribute will be used to set the point size
-	 */
-	public void setSizeAttribute(Attribute at) {
-		this.sizeAttribute = at;
-
-		// if the size attribute is numeric then find its range
-		if (at != null && at.isNumeric()) {
-			double v;
-			sizeAttributeLowerBound = getInstances().instance(0).value(at);
-			sizeAttributeUpperBound = getInstances().instance(0).value(at);
-			for (int i = 1; i < getInstances().numInstances(); i++) {
-				v = getInstances().instance(i).value(at);
-				if (v > sizeAttributeUpperBound)
-					sizeAttributeUpperBound = v;
-				if (v < sizeAttributeLowerBound)
-					sizeAttributeLowerBound = v;
-			}
-		}
-		System.out.println(sizeAttributeLowerBound);
-		System.out.println(sizeAttributeUpperBound);
-		fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
-	}
-
-	/** Set the size attribute to be node degree */
-	public void setGraphSizeAttribute(Graph graph, int index) {
-		GraphMetrics metrics = new GraphMetrics(graph, this);
-
-		// create an array with the chosen degree of each node
-		switch (index) {
-		case 0:
-			degree = null;
-			System.out.println("degree is now null");
-			break;
-		case 1:
-			degree = metrics.calculateNodeDegree();
-			System.out.println("degree is now total degree");
-			break;
-		case 2:
-			degree = metrics.calculateNodeInDegree();
-			System.out.println("degree is now in degree");
-			break;
-		case 3:
-			degree = metrics.calculateNodeOutDegree();
-			System.out.println("degree is now out degree");
-			break;
-		}
-
-		// check that the degree isn't null
-		if (degree != null) {
-			// find the maximum and minimum degree values
-			int length = degree.length;
-			int i;
-			int lowest = degree[0];
-			int highest = degree[0];
-
-			for (i = 1; i < length; i++) {
-				if (degree[i] < lowest)
-					lowest = degree[i];
-				if (degree[i] > highest)
-					highest = degree[i];
-			}
-
-			System.out.println(lowest);
-			System.out.println(highest);
-
-			// assign these values to the sizing bounds
-			double v;
-			sizeAttributeLowerBound = lowest;
-			sizeAttributeUpperBound = highest;
-			for (int j = 0; j < getInstances().numInstances(); j++) {
-				v = degree[j];
-				if (v > sizeAttributeUpperBound)
-					sizeAttributeUpperBound = v;
-				if (v < sizeAttributeLowerBound)
-					sizeAttributeLowerBound = v;
-			}
-
-			// update the view
-		}
-		fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
-	}
-
-	public void resetSizes(Attribute sizeAttribute) {
-		this.sizeAttribute = sizeAttribute;
-		fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
-	}
-
+	
 	public void setColourAttribute(Attribute at) {
 		this.colourAttribute = at;
 
@@ -336,38 +295,31 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 		}
 		fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
 	}
-
-	public void setShapeAttribute(Attribute shapeAttribute) {
-		this.shapeAttribute = shapeAttribute;
-		fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
+	
+	public int getTransparencyLevel() {
+		return transparencyLevel;
 	}
 
-	public void setFillAttribute(Attribute fillAttribute) {
-		this.fillAttribute = fillAttribute;
+	public void setTransparencyLevel(int t) {
+		transparencyLevel = t;
 		fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
 	}
-
-	public void setMarkerSize(double d) {
-		markerSize = d;
-		fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
+		
+	public int getTransparency() {
+		return currentTransparency;
 	}
 
-	public double getMarkerSize() {
-		return markerSize;
+	public void setTransparency(int t) {
+		currentTransparency = t;
 	}
 
 	void initRetinalAttributes() {
-		shapeAttribute = null;
-		sizeAttribute = null;
-		fillAttribute = null;
-
 		if (getInstances() != null && getInstances().classIndex() >= 0)
 			colourAttribute = getInstances().classAttribute();
 		else
 			colourAttribute = null;
-		selectAttribute = colourAttribute;
+		pointModel.initiatePointAttributes();
 		fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
-
 	}
 
 	/** Remove an attribute, returning the values */
@@ -397,7 +349,7 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 			// NB we have to do this since the Remove filter messes up
 			// references to color attributes etc
 			double[][] oldProjectionValues = getProjection().copy().getArray();
-			initialise(instances, false, null);
+			initialise(instances, false);
 			// copy back the values of the projection (except those from the
 			// removed attributes)
 			((LinearProjection) getProjection()).setValues(MatrixUtils
@@ -415,23 +367,12 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 	 * attribute to null
 	 */
 	private void removeRetinalAttribute(Attribute at) {
-		if (getShapeAttribute() == at)
-			setShapeAttribute(null);
+		pointModel.removePointAttributes(at);
 		if (getColourAttribute() == at)
 			setColourAttribute(null);
-		if (getSizeAttribute() == at)
-			setSizeAttribute(null);
-		if (getFillAttribute() == at)
-			setFillAttribute(null);
-		if (getSelectAttribute() == at)
-			setSelectAttribute(null);
 	}
-
+	
 	// == Selection rectangle =========================
-
-	protected Rectangle rectangle;
-
-	private static final double MARGIN = 0.1;
 
 	/** Initialise a rectangle with corners at the given points */
 	public void initRectangle(Point2D p1, Point2D p2) {
@@ -512,10 +453,7 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 		return (a < b ? b : a);
 	}
 
-	// == Other graph decoration =======================
-
-	/** Whether or not to show the axes. */
-	protected boolean showAxes = false;
+	// == Axes =======================
 
 	/** Whether to show axes */
 	public void setShowAxes(boolean b) {
@@ -527,9 +465,9 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 		return showAxes;
 	}
 
+	// == Target =======================
+	
 	/** Whether to show the target currently being pursued */
-	protected boolean showTarget;
-
 	public boolean showTarget() {
 		return showTarget;
 	}
@@ -539,6 +477,8 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
 	}
 
+	// == Series =======================
+	
 	public void createSeries(Attribute indexAttribute, Attribute idAttribute) {
 		super.createSeries(indexAttribute, idAttribute);
 		setShowSeries(true);
@@ -550,8 +490,6 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 	}
 
 	/** whether to show series */
-	protected boolean showSeries = false;
-
 	public boolean showSeries() {
 		return showSeries;
 	}
@@ -562,8 +500,8 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
 	}
 
-	protected boolean showHierarchicalClustering;
-
+	// == Hierarchical clustering =======================
+	
 	public void setShowHierarchicalClustering(boolean show) {
 		showHierarchicalClustering = show;
 		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
@@ -573,25 +511,15 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 		return showHierarchicalClustering;
 	}
 
+	// == Test set  =======================
+	
 	public Attribute createTestSet(int k) {
 		super.createTestSet(k);
-		setFillAttribute(getTestAttribute());
+		pointModel.setFillAttribute(getTestAttribute());
 		return getTestAttribute();
 	}
 
 	// == Transforming date space into device space ===================
-
-	/**
-	 * How big is the margin round the points as a proportion of the overall
-	 * window
-	 */
-	private static final double PANEL_MARGIN = .1d;
-
-	/** THe transform for transforming points from daa space to device space */
-	private AffineTransform transform;
-
-	/** The size of the device space */
-	private int width, height;
 
 	/**
 	 * Resize the scatter plot so that it fits in the new window size
@@ -725,7 +653,7 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 		ScatterPlotModel clone = new ScatterPlotModel(numViewDimensions);
 		Instances cloneInstances = new Instances(instances);
 		try {
-			clone.setInstances(cloneInstances, false, null);
+			clone.setInstances(cloneInstances, false);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -747,7 +675,7 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 		if (snapshots != null && snapshots.size() > 0) {
 			ScatterPlotModel previous = snapshots.pop();
 			try {
-				initialise(previous.instances, false, null);
+				initialise(previous.instances, false);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -766,26 +694,22 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 	// ---- Anything to do with the Graph/Network----------------
 
 	// Load the Graph
-
-	protected boolean showGraph = false;
-	protected boolean graphLoaded = false;
-
-	private EdgeModel edgeModel;
-
 	public void loadGraph(Graph graph) {
 		super.loadGraph(graph);
 		setShowGraph(true);
 		setGraphLoaded(true);
+		graphModel = new GraphModel(graph, this);
+	}
+	
+	public GraphModel getGraphModel(){
+		return graphModel;
 	}
 
 	// Remove the graph from the model
-
 	public void removeGraph() {
 		super.removeGraph();
 		setShowGraph(false);
 	}
-
-	// Hide the Edges from view
 
 	public void setShowGraph(boolean show) {
 		showGraph = show;
@@ -802,189 +726,6 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 
 	public boolean graphLoaded() {
 		return graphLoaded;
-	}
-
-	public EdgeModel getEdgeModel() {
-		return edgeModel;
-	}
-	// Set the transparency level
-
-	protected int transparencyLevel = 25;
-
-	public int getTransparencyLevel() {
-		return transparencyLevel;
-	}
-
-	public void setTransparencyLevel(int t) {
-		transparencyLevel = t;
-		fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
-	}
-	
-	protected int currentTransparency;
-	
-	public int getTransparency() {
-		return currentTransparency;
-	}
-
-	public void setTransparency(int t) {
-		currentTransparency = t;
-	}
-	
-
-	protected float beizerCurviness = 0.1f;
-
-	public float getBeizerCurviness() {
-		return beizerCurviness;
-	}
-
-	public void setBeizerCurviness(float t) {
-		beizerCurviness = t;
-		fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
-	}
-
-	protected boolean labels = false;
-
-	public void showLabels(boolean b) {
-		labels = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean labels() {
-		return labels;
-	}
-
-	protected boolean highlightedLabels = false;
-
-	public void showHightlightedLabels(boolean b) {
-		highlightedLabels = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean highlightedLabels() {
-		return highlightedLabels;
-	}
-
-	protected boolean hoverLabels = false;
-
-	public void showHoverLabels(boolean b) {
-		hoverLabels = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean hoverLabels() {
-		return hoverLabels;
-	}
-
-	protected boolean selectedLabels = false;
-
-	public void showSelectedLabels(boolean b) {
-		selectedLabels = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean selectedLabels() {
-		return selectedLabels;
-	}
-
-	protected boolean nodeLabelColor = false;
-
-	public void showNodeLabelColor(boolean b) {
-		nodeLabelColor = b;
-		fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean nodeLabelColor() {
-		return nodeLabelColor;
-	}
-
-	protected double labelSize = 0.25;
-
-	public double getLabelSize() {
-		return labelSize;
-	}
-
-	public void setLabelSize(double t) {
-		labelSize = t;
-		fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
-	}
-
-	protected boolean nodeDegreeSet = false;
-	protected int[] degree = null;
-
-	private DBConnection dbConnection;
-
-	// public void setNodeDegree(Graph currentGraph) {
-	//
-	// Instances ins = getInstances();
-	// int numberInstances = ins.numInstances();
-	// Connection cnxn = null;
-	//
-	// int i;
-	// for (i = 0; i < numberInstances; i++){
-	//
-	// Iterator<Connection> allConnections =
-	// getGraph().getAllConnections().iterator();
-	// String currentNode = ins.instance(i).toString(0);
-	// int currentDegree = 0;
-	//
-	// while (allConnections.hasNext()) {
-	// cnxn = allConnections.next();
-	// if(cnxn.getSourceNode().equals(currentNode))
-	// currentDegree++;
-	// if(cnxn.getTargetNode().equals(currentNode))
-	// currentDegree++;
-	// }
-	// degree[i] = currentDegree;
-	// }
-	// }
-
-	public int[] getNodeDegree() {
-		return degree;
-	}
-
-	/**
-	 * Find all the neighbours of a node
-	 * 
-	 * @param i
-	 *            is the index of the node we wish to find a parameter for
-	 */
-	
-		
-	public boolean neighbourSelected(int i) {
-		// get all neighbours of a node
-		int idIndex =  instances.attribute(getEdgeAttributeString()).index(); 
-		Iterator<Connection> nbs = getGraph().findNeighbours(
-				instances.instance(i).stringValue(idIndex)).iterator();
-		boolean result = false;
-		while (nbs.hasNext()) {
-			Connection nextnbr;
-			int j;
-			nextnbr = nbs.next();
-			// check if the node i is the source node in this connection and
-			// that we are wanting to display
-			// outgoing edges
-			if (nextnbr.getSourceNode().equals(instances.instance(i).stringValue(idIndex)) ){
-				// if it is get the instance this target node belongs to
-				// Instance target = nextnbr.getTargetInstance();
-				// j = indexOf(target);
-				j = nextnbr.getTargetIndex();
-				// then check if this instance is in the list of selected nodes
-				if (isPointSelected(j) && edgeModel.incomingEdges()) {
-					result = true;
-				}
-			} else if (nextnbr.getTargetNode().equals(instances.instance(i).stringValue(idIndex))) {
-				// Instance source = nextnbr.getSourceInstance();
-				// j = indexOf(source);
-				j = nextnbr.getSourceIndex();
-				if (isPointSelected(j) && edgeModel.outgoingEdges()) {
-					result = true;
-				}
-			} else {
-				result = false;
-			}
-		}
-		return result;
-		// return false;
 	}
 
 	public void addDatabaseConnection(String username, String password,
@@ -1027,13 +768,6 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 		DatabaseTableGUI dbTableGUI = new DatabaseTableGUI(rs);
 
 	}
-
-	private String spectrumColor = "Default";
-	private String classColor = "Default";
-	private String bgColor = "Light";
-
-	/** Noise added to the view to better separate the points */
-	private Matrix noise;
 	
 	public void setNoise(){
 		noise = new Matrix(getNumDataPoints(),
@@ -1053,60 +787,7 @@ public class ScatterPlotModel extends TPPModel implements Cloneable {
 		return noise;
 	}
 	
-	public void setBGColor(String selectedItem) {
-		bgColor = selectedItem;
 
-	}
-
-	public void setClassColor(String selectedItem) {
-		classColor = selectedItem;
-
-	}
-
-	public void setSpectrumColor(String selectedItem) {
-		spectrumColor = selectedItem;
-
-	}
-
-	public String getBGColor() {
-		return bgColor;
-
-	}
-
-	public String getClassColor() {
-		return classColor;
-
-	}
-
-	public String getSpectrumColor() {
-		return spectrumColor;
-
-	}
-
-	/**
-	 * Set the colours depending on if they are chosen to be viewed by class or
-	 * numeric
-	 * @param i
-	 *            the node the colour applies to
-	 * @return
-	 */
-	Color setColor(int i) {
-		Color c = null;
-		if (getColourAttribute() == null) {
-			c = getColours().getForegroundColor();
-		} else if (getColourAttribute().isNominal()) {
-			c = getColours().getClassificationColor(
-					(int) getInstances().instance(i)
-							.value(getColourAttribute()));
-		} else if (getColourAttribute().isNumeric()) {
-			c = getColours().getColorFromSpectrum(
-					getInstances().instance(i)
-							.value(getColourAttribute()),
-					colorAttributeLowerBound,
-					colorAttributeUpperBound);
-		}
-		return c;
-	}
 
 	
 

@@ -25,6 +25,26 @@ public class EdgeModel {
 	private int lowEdgeWeightValue;
 	private int upperEdgeWeightRange;
 	
+	private boolean incomingEdges = true;
+	private boolean outgoingEdges = true;
+	
+	private boolean showSourceEdgeColor;
+	private boolean showTargetEdgeColor;
+	private boolean showDefaultEdgeColor = true;
+	private boolean showMixedEdgeColor;
+	
+	private Attribute currentBundledAttribute;
+	private boolean straightEdges = true;
+	private float beizerCurviness = 0.1f;
+	private boolean bezierEdges;
+	private boolean bundledEdges;
+	private boolean fannedEdges;
+	private boolean intelligentEdges;
+	private boolean arrowedEdges;
+	private boolean filterAllEdges;
+	private boolean filterEdgesByWeight;
+	private boolean viewEdgeWeights;
+	
 	private ArrayList<Point2D> centroids;
 	private ArrayList<Float> magnitudes;
 	private ArrayList<PVector> vectors;
@@ -51,7 +71,7 @@ public class EdgeModel {
 				d = 0.0; // initialise entries in the array.
 			}
 			
-			curveFactor = (graph.getAllConnections().size() / spModel.instances
+			curveFactor = (spModel.getGraph().getAllConnections().size() / spModel.instances
 					.numInstances()) * 100;
 
 			if (intelligentEdges()) {
@@ -71,9 +91,6 @@ public class EdgeModel {
 		return clusterEdgesDrawn;
 	}
 	
-	protected boolean incomingEdges = true;
-	protected boolean outgoingEdges = true;
-
 	/** Show the incoming edges of selected nodes(s) */
 	public void showIncomingEdges(boolean b) {
 		incomingEdges = b;
@@ -94,9 +111,6 @@ public class EdgeModel {
 		return outgoingEdges;
 	}
 	
-	// Color the edges by their source node color
-	protected boolean showSourceEdgeColor;
-	
 	/** Whether to color the edges the same as the source node */
 	public void setSourceColorEdges(boolean b) {
 		showSourceEdgeColor = b;
@@ -106,9 +120,6 @@ public class EdgeModel {
 	public boolean sourceColorEdges() {
 		return showSourceEdgeColor;
 	}
-
-	// Color the edges by target node color
-	protected boolean showTargetEdgeColor;
 
 	/** Whether to color the edges the same as the source node */
 	public void setTargetColorEdges(boolean b) {
@@ -120,8 +131,6 @@ public class EdgeModel {
 		return showTargetEdgeColor;
 	}
 
-	protected boolean showDefaultEdgeColor = true;
-
 	/** Whether to color all the edges the same */
 	public void setDefaultColorEdges(boolean b) {
 		showDefaultEdgeColor = b;
@@ -131,9 +140,6 @@ public class EdgeModel {
 	public boolean defaultColorEdges() {
 		return showDefaultEdgeColor;
 	}
-
-	// Color the edges by their a mixture of source and target node colors
-	protected boolean showMixedEdgeColor;
 
 	/** Whether to color the edges the same as the source node */
 	public void setMixedColorEdges(boolean b) {
@@ -145,9 +151,6 @@ public class EdgeModel {
 		return showMixedEdgeColor;
 	}
 
-	// show the edges as straight lines
-	protected boolean straightEdges = true;
-
 	/** Whether to color the edges the same as the source node */
 	public void setStraightEdges(boolean b) {
 		straightEdges = b;
@@ -158,11 +161,16 @@ public class EdgeModel {
 		return straightEdges;
 	}
 
-	// show the edges as bezier curves rather than straight lines
-	// Color the edges by their source node color
-	protected boolean bezierEdges;
+	public float getBeizerCurviness() {
+		return beizerCurviness;
+	}
 
-	/** Whether to color the edges the same as the source node */
+	public void setBeizerCurviness(float t) {
+		beizerCurviness = t;
+		spModel.fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
+	}
+
+	/** Whether to shape the edges as bezier curves */
 	public void setBezierEdges(boolean b) {
 		bezierEdges = b;
 		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
@@ -171,11 +179,6 @@ public class EdgeModel {
 	public boolean bezierEdges() {
 		return bezierEdges;
 	}
-
-	// show the edges as bundles rather than straight lines
-	protected boolean bundledEdges;
-
-	private Attribute currentBundledAttribute;
 
 	public void setBundledEdges(boolean b) {
 		bundledEdges = b;
@@ -191,9 +194,6 @@ public class EdgeModel {
 		return bundledEdges;
 	}
 
-	// show the edges as fans rather than straight lines
-	protected boolean fannedEdges;
-
 	public void setFannedEdges(boolean b) {
 		fannedEdges = b;
 		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
@@ -202,9 +202,6 @@ public class EdgeModel {
 	public boolean fannedEdges() {
 		return fannedEdges;
 	}
-	
-	// bundle the edges intelligently
-	protected boolean intelligentEdges;
 
 	public void setIntelligentEdges(boolean b) {
 		intelligentEdges = b;
@@ -214,8 +211,6 @@ public class EdgeModel {
 	public boolean intelligentEdges() {
 		return intelligentEdges;
 	}
-
-	protected boolean arrowedEdges;
 
 	/** Whether to add an arrow to each edge to indicate direction */
 	public void setArrowedEdges(boolean b) {
@@ -228,8 +223,6 @@ public class EdgeModel {
 	}
 
 	/** Filter all edges from view until nodes are selected */
-	protected boolean filterAllEdges;
-
 	public void setFilterAllEdges(boolean b) {
 		filterAllEdges = b;
 		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
@@ -240,8 +233,6 @@ public class EdgeModel {
 	}
 	
 	/** Filter edges based on their weight */
-	protected boolean filterEdgesByWeight;
-
 	public void setFilterEdgesByWeight(boolean b) {
 		filterEdgesByWeight = b;
 		spModel.fireModelChanged(TPPModelEvent.CONTROL_PANEL_UPDATE);
@@ -252,8 +243,6 @@ public class EdgeModel {
 	}
 	
 	/** Reflect the edge weights in the thickness of the edges */
-	protected boolean viewEdgeWeights;
-	
 	public void setViewEdgeWeights(boolean b) {
 		viewEdgeWeights = b;
 		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
@@ -263,8 +252,6 @@ public class EdgeModel {
 		return viewEdgeWeights;
 	}
 
-	
-	
 	public double getMinEdgeWeight() {
 		ArrayList<Connection> allConnections = spModel.getGraph().getAllConnections();
 		double min = allConnections.get(0).getEdgeWeight();

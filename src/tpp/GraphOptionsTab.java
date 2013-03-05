@@ -34,6 +34,8 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 	ScatterPlotModel spModel;
 	private Graph graph;
 	private EdgeModel edgeModel;
+	private PointModel pointModel;
+	private GraphModel graphModel;
 
 	private JButton loadGraphButton;
 	private JCheckBox directedCheckBox;
@@ -69,11 +71,14 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 	private Dimension min = new Dimension(100, 20);
 	private JCheckBox edgeWeightFilterCB;
 
+
 	public GraphOptionsTab(ScatterPlotModel spModel) {
 
 		super();
 		this.spModel = spModel;
 		edgeModel = spModel.getEdgeModel();
+		pointModel = spModel.getPointModel();
+		graphModel = spModel.getGraphModel();
 		init();
 		setVisible(true);
 		
@@ -160,11 +165,11 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 
 		filterEdgeCheckBox = new JCheckBox("Filter Edges");
 		filterEdgeCheckBox.setEnabled(false);
-		filterEdgeCheckBox.setSelected(edgeModel.filterAllEdges);
+		filterEdgeCheckBox.setSelected(edgeModel.filterAllEdges());
 
 		edgeWeightsCheckBox = new JCheckBox("Weight Edges");
 		edgeWeightsCheckBox.setEnabled(false);
-		edgeWeightsCheckBox.setSelected(edgeModel.viewEdgeWeights);
+		edgeWeightsCheckBox.setSelected(edgeModel.viewEdgeWeights());
 
 		loadGraphButton.addActionListener(this);
 		directedCheckBox.addActionListener(this);
@@ -495,11 +500,11 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		showSelectedLabels = new JCheckBox("Selected");
 		nodeColorCB = new JCheckBox("Node Color");
 
-		showLabelsCheckBox.setSelected(spModel.labels());
-		showHighlightedLabels.setSelected(spModel.highlightedLabels());
-		showHoverLabels.setSelected(spModel.hoverLabels());
-		showSelectedLabels.setSelected(spModel.selectedLabels());
-		nodeColorCB.setSelected(spModel.nodeLabelColor());
+		showLabelsCheckBox.setSelected(pointModel.labels());
+		showHighlightedLabels.setSelected(pointModel.highlightedLabels());
+		showHoverLabels.setSelected(pointModel.hoverLabels());
+		showSelectedLabels.setSelected(pointModel.selectedLabels());
+		nodeColorCB.setSelected(pointModel.nodeLabelColor());
 
 		showLabelsCheckBox.setEnabled(false);
 		showHighlightedLabels.setEnabled(false);
@@ -542,8 +547,8 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 
 		labelPanel.add(labelSizeLabel, labelGrid);
 
-		labelSlider = new JSlider(1, 100, (int) (spModel.getLabelSize() * 100));
-		labelSlider.setValue((int) (spModel.getLabelSize() * 100));
+		labelSlider = new JSlider(1, 100, (int) (pointModel.getLabelSize() * 100));
+		labelSlider.setValue((int) (pointModel.getLabelSize() * 100));
 		labelSlider.addChangeListener(this);
 		labelSlider.setToolTipText("Change the size of the labels");
 		labelSlider.setEnabled(false);
@@ -719,29 +724,29 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 
 		if (event.getSource() == graphSizeCombo) {
 			// sizeCombo.setSelectedIndex(0);
-			spModel.setSizeAttribute(null);
-			spModel.setGraphSizeAttribute(graph,
+			pointModel.setSizeAttribute(null);
+			graphModel.setGraphSizeAttribute(graph,
 					graphSizeCombo.getSelectedIndex());
 		}
 
 		if (event.getSource() == showLabelsCheckBox) {
-			spModel.showLabels(showLabelsCheckBox.isSelected());
+			pointModel.showLabels(showLabelsCheckBox.isSelected());
 		}
 
 		if (event.getSource() == showHighlightedLabels) {
-			spModel.showHightlightedLabels(showHighlightedLabels.isSelected());
+			pointModel.showHightlightedLabels(showHighlightedLabels.isSelected());
 		}
 
 		if (event.getSource() == showHoverLabels) {
-			spModel.showHoverLabels(showHoverLabels.isSelected());
+			pointModel.showHoverLabels(showHoverLabels.isSelected());
 		}
 
 		if (event.getSource() == showSelectedLabels) {
-			spModel.showSelectedLabels(showSelectedLabels.isSelected());
+			pointModel.showSelectedLabels(showSelectedLabels.isSelected());
 		}
 
 		if (event.getSource() == nodeColorCB) {
-			spModel.showNodeLabelColor(nodeColorCB.isSelected());
+			pointModel.showNodeLabelColor(nodeColorCB.isSelected());
 		}
 
 		if (event.getSource() == edgeWeightFilterCB) {
@@ -791,7 +796,7 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		// spModel.setBeizerCurviness((float)beizerSlider.getValue()/100f);
 
 		if (labelSlider == (JSlider) e.getSource())
-			spModel.setLabelSize(labelSlider.getValue() / 100d);
+			pointModel.setLabelSize(labelSlider.getValue() / 100d);
 	}
 
 }

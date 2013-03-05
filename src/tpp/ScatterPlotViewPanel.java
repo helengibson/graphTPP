@@ -63,7 +63,6 @@ public class ScatterPlotViewPanel extends JPanel implements
 		TPPModelEventListener, ComponentListener {
 
 	protected ScatterPlotModel spModel = null;
-
 	protected static final double LINE_WIDTH = 0.7;
 
 	/** whether to add noise to the view */
@@ -192,7 +191,7 @@ public class ScatterPlotViewPanel extends JPanel implements
 		 * data space. If no point is found then zero length array returned
 		 */
 		public int[] findNearestPoints(Point2D.Double pt) {
-			double margin = spModel.markerSize * getWidth()
+			double margin = spModel.getPointModel().getMarkerSize() * getWidth()
 					/ spModel.getTransform().getScaleX();
 			double distance;
 			Vector<Integer> points = new Vector<Integer>();
@@ -214,7 +213,7 @@ public class ScatterPlotViewPanel extends JPanel implements
 		 * space. If no axis is found then zero length array returned
 		 */
 		public int[] findNearestAxes(java.awt.geom.Point2D.Double pt) {
-			double margin = spModel.markerSize * getWidth()
+			double margin = spModel.getPointModel().getMarkerSize() * getWidth()
 					/ spModel.getTransform().getScaleX();
 			double distance;
 			Vector<Integer> axes = new Vector<Integer>();
@@ -239,21 +238,14 @@ public class ScatterPlotViewPanel extends JPanel implements
 		 */
 		public void paintView(Graphics2D g2, AffineTransform transform,
 				int width, int height) {
-			double scaledMarkerSize = (spModel.markerSize * width);
-
-			/**
-			 * The difference between the maximum and minimum marker size (as a
-			 * proportion of screen size).
-			 */
-			double markerRange = scaledMarkerSize * 2;
-
-			/**
-			 * The minimum size of the markers to display. (as a proportion of
-			 * screen size).
-			 */
-			double markerMin = scaledMarkerSize * 0.5;
-
-			double origin = scaledMarkerSize * 2;
+			
+			PointModel pointModel = spModel.getPointModel();
+			pointModel.setScaledMarkerSize(width);
+			pointModel.setMinMarkerSize();
+			pointModel.setMarkerRange();
+			pointModel.setMarkerRadius(transform);
+			
+			double origin = pointModel.getScaledMarkerSize();
 
 			if (spModel != null && spModel.getData() != null) {
 
@@ -271,17 +263,8 @@ public class ScatterPlotViewPanel extends JPanel implements
 				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 						RenderingHints.VALUE_ANTIALIAS_ON);
 
-				// find out how big the markers need to be in data space in
-				// order to
-				// appear the right size in device space
-				// nb this assumes that the same scale is used for both x and y
-				double markerRadius = scaledMarkerSize / transform.getScaleX();
-
-				int transparency;
-				double labelSize = spModel.getLabelSize();
-				Color c;
-
 				// set the transparency level for when the graph is shown
+				int transparency;
 				if (spModel.arePointsSelected())
 					transparency = spModel.getTransparencyLevel();
 				else
@@ -304,92 +287,61 @@ public class ScatterPlotViewPanel extends JPanel implements
 				double[] relativeMeanForSelected = null;
 
 
-				if (spModel.showAxes() && (numPointsSelected > 0)) {
+				if (spModel.showAxes() && (numPointsSelected > 0))
 					relativeMeanForSelected = spModel.getAttributeMeans();
-				}
-
-				// draw series lines;
-				if (spModel.showSeries() && (spModel.getSeries() != null)) {
-					drawSeries(g2, markerRadius);
-				}
-
-				if (spModel.showGraph()) {
-					ArrayList<Connection> allConnections = spModel.getGraph()
-							.getAllConnections();
-					
-					EdgeModel edgeModel = spModel.getEdgeModel();
-					edgeModel.initialise();
-					for (int i = 0; i < allConnections.size(); i++) {
-						Connection cnxn = allConnections.get(i);
-						Edge edge = new Edge(cnxn, edgeModel, spModel);
-						edge.drawEdge(g2, strokeWidth.getLineWidth());
-						if (edgeModel.arrowedEdges()) {
-							drawArrowHead(g2, markerRadius, markerRange, markerMin, edge.getArrowLine(), cnxn.getTargetIndex());
-						}
-					}
-				}
-					
-
-				// draw clustering
-				if (spModel.showHierarchicalClustering())
-					drawClustering(g2);
-
-				// draw the target
-				if (spModel.showTarget())
-					drawTarget(g2, markerRadius);
-
-				// draw the points so that selected points appear on top
-				// long startTimeA = System.currentTimeMillis();
-
-				g2.setStroke(new BasicStroke(
-						(float) (LINE_WIDTH * 2 / transform.getScaleX())));
-
-				if (spModel.showGraph()) {
-					ArrayList<Integer> selectedPoints = new ArrayList<Integer>();
-					ArrayList<Integer> linkedPoints = new ArrayList<Integer>();
-					ArrayList<Integer> backgroundPoints = new ArrayList<Integer>();
-					for (int i = 0; i < spModel.getNumDataPoints(); i++) {
-						if (spModel.isPointSelected(i))
-							selectedPoints.add(i);
-						else if (spModel.neighbourSelected(i)
-								|| spModel.isPointHovered(i))
-							linkedPoints.add(i);
-						else
-							backgroundPoints.add(i);
-					}
-					ArrayList<Integer> allPoints = new ArrayList<Integer>();
-					allPoints.addAll(backgroundPoints);
-					allPoints.addAll(linkedPoints);
-					allPoints.addAll(selectedPoints);
-
-					System.out.println("Drawing points with a graph");
-
-					for (int i : allPoints) {
-						drawPoint(g2, transform, markerRange, markerMin,
-								markerRadius, i, transparency);
-					}
-
-				} else {
-					System.out.println("Drawing points without graph");
-					for (int i = 0; i < spModel.getNumDataPoints(); i++) {
-						drawPoint(g2, transform, markerRange, markerMin,
-								markerRadius, i, transparency);
-					}
-				}
-
-				// add labels to the points on the graph
-				if (spModel.labels())
-					drawLabels(g2, transform, markerRadius, labelSize);
-
+				
 				// plot the axes or just the origin
 				if (spModel.showAxes())
-					drawAxes(g2, markerRadius, numPointsSelected,
+					drawAxes(g2, spModel.getPointModel().getMarkerRadius(), numPointsSelected,
 							relativeMeanForSelected);
 				else {
 					double originSize = origin / transform.getScaleX();
 					g2.setColor(spModel.getColours().getAxesColor());
 					g2.draw(new Line2D.Double(-originSize, 0, originSize, 0));
 					g2.draw(new Line2D.Double(0, -originSize, 0, originSize));
+				}
+
+				if (spModel.showGraph()) {
+					ArrayList<Connection> allConnections = spModel.getGraph().getAllConnections();
+					EdgeModel edgeModel = spModel.getEdgeModel();
+					edgeModel.initialise();
+					
+					for (int i = 0; i < allConnections.size(); i++) {
+						Connection cnxn = allConnections.get(i);
+						Edge edge = new Edge(cnxn, edgeModel, spModel);
+						edge.drawEdge(g2, strokeWidth.getLineWidth());
+					}
+				}
+				// draw clustering
+				if (spModel.showHierarchicalClustering())
+					drawClustering(g2);
+				
+				// draw series lines;
+				if (spModel.showSeries() && (spModel.getSeries() != null)) {
+					drawSeries(g2, pointModel.getMarkerRadius());
+				}
+
+				// draw the target
+				if (spModel.showTarget())
+					drawTarget(g2, pointModel.getMarkerRadius());
+
+				g2.setStroke(new BasicStroke((float) (LINE_WIDTH * 2 / transform.getScaleX())));
+
+				// draw the points/nodes
+				if (spModel.showGraph()) {
+					ArrayList<Integer> allPoints = orderPoints(spModel.getGraphModel());
+					for (int p : allPoints) {
+						Point point = new Point(spModel, pointModel, p);
+						point.drawPoint(g2, transform);
+						// add labels to the points on the graph
+						if (pointModel.labels())
+							point.drawLabel(g2, transform);
+					}
+				} else {
+					for (int p = 0; p < spModel.getNumDataPoints(); p++) {
+						Point point = new Point(spModel, pointModel, p);
+						point.drawPoint(g2, transform);
+					}
 				}
 
 				// draw the rectangle?
@@ -404,253 +356,49 @@ public class ScatterPlotViewPanel extends JPanel implements
 					spModel.updateNoise();
 			}
 		}
-	}
 
-	private void drawPoint(Graphics2D g2, AffineTransform transform,
-			double markerRange, double markerMin, double markerRadius, int i,
-			int transparency) {
-		double x;
-		double y;
-		double size;
-		Shape marker;
-		Color c;
-		{
-			// first set the colour
-			c = pointColor(g2, i);
-			Matrix noise = spModel.getNoise();
-			// if the graph isn't loaded or no points are selected
-			// or the selected points leave colors as they are
-			if (!spModel.showGraph()
-					|| (spModel.isPointSelected(i) || !spModel
-							.arePointsSelected()))
-				g2.setColor(c);
-			// if a neighbour is selected or a point is being hovered over
-			// do something to indicate this (what? - making colours brighter
-			// etc doesn't really work
-			// for now keep it the same color and update the stroke to give the
-			// selected effect
-			else if (spModel.neighbourSelected(i) || spModel.isPointHovered(i))
-				// g2.setColor(c.brighter());
-				g2.setColor(c);
-			// if a point is neither, selected, a neighbour or hovered then make
-			// it transparent
-			else
-				g2.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(),
-						transparency));
-
-			// Size of the marker depends on size attribute
-			if (spModel.getSizeAttribute() == null
-					&& spModel.getDegree() == null) {
-				size = Math.sqrt(markerRadius / Math.PI);
-			} else if (spModel.getDegree() != null) {
-				double area = (markerMin + markerRange
-						* (spModel.getDegree()[i] - spModel.sizeAttributeLowerBound)
-						/ (spModel.sizeAttributeUpperBound - spModel.sizeAttributeLowerBound))
-						/ transform.getScaleX();
-				size = Math.sqrt(area / Math.PI);
-			} else {
-				double area = (markerMin + markerRange
-						* (spModel.getInstances().instance(i)
-								.value(spModel.getSizeAttribute()) - spModel.sizeAttributeLowerBound)
-						/ (spModel.sizeAttributeUpperBound - spModel.sizeAttributeLowerBound))
-						/ transform.getScaleX();
-				size = Math.sqrt(area / Math.PI);
-			}
-
-			// shape/fill of the marker depends on respective attributes
-			x = spModel.getView().get(i, 0) + noise.get(i, 0);
-			y = spModel.getView().get(i, 1) + noise.get(i, 1);
-
-			if (spModel.getShapeAttribute() == null)
-				marker = MarkerFactory.buildMarker(0, x, y, size);
-			else {
-				marker = MarkerFactory.buildMarker((int) spModel.instances
-						.instance(i).value(spModel.getShapeAttribute()), x, y,
-						size);
-			}
-
-			if (spModel.isPointSelected(i)) {
-				g2.draw(new Line2D.Double(x - size, y, x + size, y));
-				g2.draw(new Line2D.Double(x, y - size, x, y + size));
-				if (spModel.graphLoaded()) {
-					g2.fill(marker);
-
-					if (spModel.getColours().getBackgroundColor() == Color.BLACK)
-						g2.setColor(Color.WHITE);
-					if (spModel.getColours().getBackgroundColor() == Color.WHITE)
-						g2.setColor(Color.BLACK);
-					g2.draw(marker);
-
-				}
-			} else {
-
-				if (spModel.getFillAttribute() == null) {
-					g2.fill(marker);
-					// if (spModel.getColours().getBackgroundColor() ==
-					// Color.BLACK) {
-					// if (!spModel.showGraph()
-					// || !spModel.arePointsSelected()
-					// || (spModel.showGraph() && spModel
-					// .neighbourSelected(i))
-					// || (spModel.showGraph() && (spModel
-					// .isPointSelected(i)))
-					// || (spModel.showGraph() && (spModel
-					// .isPointHovered(i))))
-					// g2.setColor(Color.WHITE);
-					// else
-					// g2.setColor(new Color(255, 255, 255, transparency));
-					//
-					// } else if (spModel.getColours().getBackgroundColor() ==
-					// Color.WHITE) {
-					// if (!spModel.showGraph()
-					// || !spModel.arePointsSelected()
-					// || (spModel.showGraph() && spModel
-					// .neighbourSelected(i))
-					// || (spModel.showGraph() && (spModel
-					// .isPointSelected(i)))
-					// || (spModel.showGraph() && (spModel
-					// .isPointHovered(i))))
-					// g2.setColor(Color.BLACK);
-					// else
-					// g2.setColor(new Color(0, 0, 0, transparency));
-					// }
-					if (spModel.getColours().getBackgroundColor() == Color.BLACK) {
-						if (!spModel.showGraph()
-								|| !spModel.arePointsSelected()
-								|| (spModel.showGraph() && (spModel
-										.isPointSelected(i))))
-							g2.setColor(Color.WHITE);
-						else if ((spModel.showGraph() && spModel
-								.neighbourSelected(i))
-								|| (spModel.showGraph() && spModel
-										.isPointHovered(i)))
-							// g2.setColor(c.darker());
-							g2.setColor(c.brighter());
-						else
-							g2.setColor(new Color(255, 255, 255, transparency));
-
-					} else if (spModel.getColours().getBackgroundColor() == Color.WHITE) {
-						if (!spModel.showGraph()
-								|| !spModel.arePointsSelected()
-								|| (spModel.showGraph() && (spModel
-										.isPointSelected(i))))
-							g2.setColor(Color.BLACK);
-						else if ((spModel.showGraph() && spModel
-								.neighbourSelected(i))
-								|| (spModel.showGraph() && spModel
-										.isPointHovered(i)))
-							// g2.setColor(c.darker());
-							g2.setColor(c.brighter());
-						else
-							g2.setColor(new Color(0, 0, 0, transparency));
-					}
-					g2.draw(marker);
-				} else {
-					switch ((int) spModel.instances.instance(i).value(
-							spModel.getFillAttribute())) {
-					case 0: {
-						g2.fill(marker);
-						break;
-					}
-					case 1: {
-						g2.draw(marker);
-						break;
-					}
-					default: {
-						// TODO add more textures for filling points (shaded
-						// lines etc)
-						g2.draw(marker);
-					}
-					}
-				}
-			}
-		}
-	}
-
-	private void drawLabels(Graphics2D g2, AffineTransform transform,
-			double markerRadius, double labelSize) {
-		double x;
-		double y;
-		int i;
-		Color c;
-		{
-			Matrix noise = spModel.getNoise();
-			for (i = 0; i < spModel.getNumDataPoints(); i++) {
-
-				// Get the coordinates of the node that we want to label
-				x = spModel.getView().get(i, 0) + noise.get(i, 0);
-				y = spModel.getView().get(i, 1) + noise.get(i, 1);
-
-				// pick the colour of the label
-				c = spModel.getColours().getForegroundColor();
-				Color b = spModel.getColours().getBackgroundColor();
-				if (spModel.nodeLabelColor()) {
-					c = pointColor(g2, i);
-				}
-
-				// and what it will say
-				String nodeLabel = "";
-				if (!spModel.getDescriptionOfInstanceOnly(i).equals(""))
-					nodeLabel += spModel.getDescriptionOfInstanceOnly(i);
+		/**
+		 * Orders the points so that those nodes that are selected and those nodes connected to
+		 * those that are selected in the graph are drawn first. 
+		 * @return  list of all points
+		 */
+	private ArrayList<Integer> orderPoints(GraphModel graphModel) {
+			ArrayList<Integer> selectedPoints = new ArrayList<Integer>();
+			ArrayList<Integer> linkedPoints = new ArrayList<Integer>();
+			ArrayList<Integer> backgroundPoints = new ArrayList<Integer>();
+			for (int i = 0; i < spModel.getNumDataPoints(); i++) {
+				if (spModel.isPointSelected(i))
+					selectedPoints.add(i);
+				else if (graphModel.neighbourSelected(i)
+						|| spModel.isPointHovered(i))
+					linkedPoints.add(i);
 				else
-					nodeLabel += i + 1;
-
-				// save the current transform
-				AffineTransform saveXform = g2.getTransform();
-
-				TextLayout textTl = new TextLayout(nodeLabel, new Font(
-						"SansSerif", Font.PLAIN, 1), new FontRenderContext(
-						transform, false, false));
-
-				AffineTransform nodePosition = new AffineTransform();
-				nodePosition.concatenate(transform);
-				nodePosition.scale(labelSize, labelSize);
-				g2.setTransform(nodePosition);
-
-				Rectangle2D r = textTl.getBounds();
-				r.setRect(
-						r.getX() + (x / labelSize - (r.getWidth() / 2)),
-						r.getY()
-								+ (y / labelSize + 2 * markerRadius / labelSize + r
-										.getHeight()), r.getWidth(),
-						r.getHeight());
-
-				if (spModel.showGraph()) {
-					if ((spModel.highlightedLabels() && (spModel
-							.isPointSelected(i) || spModel.neighbourSelected(i)))
-							|| (spModel.hoverLabels() && spModel
-									.isPointHovered(i))
-							|| (spModel.selectedLabels() && spModel
-									.isPointSelected(i))) {
-						g2.setColor(b);
-						g2.fill(r);
-						g2.setColor(c);
-					} else
-						g2.setColor(new Color(c.getRed(), c.getGreen(), c
-								.getBlue(), 0));
-
-					if (!spModel.highlightedLabels() && !spModel.hoverLabels()
-							&& !spModel.selectedLabels()) {
-						g2.setColor(b);
-						g2.fill(r);
-						g2.setColor(c);
-					}
-				} else {
-					g2.setColor(b);
-					g2.fill(r);
-					g2.setColor(c);
-				}
-
-				textTl.draw(
-						g2,
-						(float) (x / labelSize - (r.getWidth() / 2)),
-						(float) (y / labelSize + 2 * markerRadius / labelSize + r
-								.getHeight()));
-				g2.setTransform(saveXform);
+					backgroundPoints.add(i);
+			}
+			ArrayList<Integer> allPoints = new ArrayList<Integer>();
+			allPoints.addAll(backgroundPoints);
+			allPoints.addAll(linkedPoints);
+			allPoints.addAll(selectedPoints);
+			return allPoints;
+		}
+	}
+	private void drawTarget(Graphics2D g2, double markerRadius) {
+		double x;
+		double y;
+		Shape circle;
+		int i;
+		{
+			g2.setColor(spModel.getColours().getAxesColor());
+			for (i = 0; i < spModel.getNumDataPoints(); i++) {
+				x = spModel.getTarget().get(i, 0);
+				y = spModel.getTarget().get(i, 1);
+				circle = new Ellipse2D.Double(x - markerRadius, y
+						- markerRadius, markerRadius * 2, markerRadius * 2);
+				g2.draw(circle);
 			}
 		}
 	}
-
+	
 	private void drawAxes(Graphics2D g2, double markerRadius,
 			int numPointsSelected, double[] relativeMeanForSelected) {
 		int i;
@@ -678,117 +426,7 @@ public class ScatterPlotViewPanel extends JPanel implements
 			}
 		}
 	}
-
-	private void drawTarget(Graphics2D g2, double markerRadius) {
-		double x;
-		double y;
-		Shape circle;
-		int i;
-		{
-			g2.setColor(spModel.getColours().getAxesColor());
-			for (i = 0; i < spModel.getNumDataPoints(); i++) {
-				x = spModel.getTarget().get(i, 0);
-				y = spModel.getTarget().get(i, 1);
-				circle = new Ellipse2D.Double(x - markerRadius, y
-						- markerRadius, markerRadius * 2, markerRadius * 2);
-				g2.draw(circle);
-			}
-		}
-	}
-
-	private void drawClustering(Graphics2D g2) {
-		// recursively draw lines between the centroids of each cluster
-		// nb this assumes the this is a binary HC -- ie that each
-		// cluster contains two members
-		g2.setColor(spModel.getColours().getAxesColor());
-		HierarchicalCluster cluster = spModel.getHierarchicalCluster();
-		drawClusterArc(cluster, g2);
-	}
-
-	private Color pointColor(Graphics2D g2, int i) {
-		Color c;
-		if (!spModel.showGraph() || !spModel.arePointsSelected()) {
-			c = spModel.setColor(i);
-			g2.setColor(c);
-		} else {
-			if (spModel.arePointsSelected())
-				c = spModel.setColor(i);
-			else
-				c = spModel.getColours().getGraphColor();
-		}
-		return c;
-	}
-
-	private void drawSeries(Graphics2D g2, double markerRadius) {
-		double x1;
-		double y1;
-		double x2;
-		double y2;
-		Line2D line;
-		int i;
-		g2.setColor(spModel.getColours().getAxesColor());
-		Iterator<TreeSet<Instance>> allSeries = spModel.getSeries()
-				.getAllSeries().values().iterator();
-		Iterator<Instance> nextSeries;
-		Matrix noise = spModel.getNoise();
-		// for all the series
-		while (allSeries.hasNext()) {
-			nextSeries = allSeries.next().iterator();
-			if (nextSeries.hasNext()) {
-
-				// find the start point
-				i = spModel.indexOf(nextSeries.next());
-				x1 = spModel.getView().get(i, 0) + noise.get(i, 0);
-				y1 = spModel.getView().get(i, 1) + noise.get(i, 1);
-				while (nextSeries.hasNext()) {
-
-					// and draw a line and arrow head to the next point
-					i = spModel.indexOf(nextSeries.next());
-					x2 = spModel.getView().get(i, 0) + noise.get(i, 0);
-					y2 = spModel.getView().get(i, 1) + noise.get(i, 1);
-					line = new Line2D.Double(x1, y1, x2, y2);
-					g2.draw(line);
-					g2.fill(MarkerFactory.buildArrowHead(line, markerRadius,
-							true));
-
-					x1 = x2;
-					y1 = y2;
-				}
-			}
-		}
-	}
-
-	/**
-	 * Recursively draw an arc between the centroids of the members of this
-	 * (binary) cluster
-	 * 
-	 * @param g2
-	 */
-	private void drawClusterArc(HierarchicalCluster cluster, Graphics2D g2) {
-
-		// if this cluster just contains another cluster then draw that
-		if (cluster.size() == 1
-				&& cluster.get(0) instanceof HierarchicalCluster)
-			drawClusterArc((HierarchicalCluster) cluster.get(0), g2);
-
-		// if this cluster contains two subclusters then draw arc between their
-		// centroids
-		if (cluster.size() == 2) {
-			HierarchicalCluster c0, c1;
-			Matrix p0, p1;
-			c0 = (HierarchicalCluster) cluster.get(0);
-			c1 = (HierarchicalCluster) cluster.get(1);
-			p0 = spModel.projection.project(c0.getCentroid());
-			p1 = spModel.projection.project(c1.getCentroid());
-			Double line = new Line2D.Double(p0.get(0, 0), p0.get(0, 1), p1.get(
-					0, 0), p1.get(0, 1));
-			g2.draw(line);
-			drawClusterArc(c0, g2);
-			drawClusterArc(c1, g2);
-		}
-
-	}
-
+	
 	/** Whether to add noise to the current view */
 	public void addNoise(boolean showNoise) {
 		this.showNoise = showNoise;
@@ -819,29 +457,6 @@ public class ScatterPlotViewPanel extends JPanel implements
 	public void componentShown(ComponentEvent e) {
 		// TODO Auto-generated method stub
 
-	}
-
-	void drawArrowHead(Graphics2D g2, double markerRadius, double markerRange, double markerMin, Line2D line, int j) {
-		AffineTransform transform = spModel.getTransform();
-		double size;
-		if (spModel.getSizeAttribute() == null && spModel.getDegree() == null) {
-			size = Math.sqrt(markerRadius / Math.PI);
-		} else if (spModel.getDegree() != null) {
-			double area = (markerMin + markerRange
-					* (spModel.getDegree()[j] - spModel.sizeAttributeLowerBound)
-					/ (spModel.sizeAttributeUpperBound - spModel.sizeAttributeLowerBound))
-					/ transform.getScaleX();
-			size = Math.sqrt(area / Math.PI);
-		} else {
-			double area = (markerMin + markerRange
-					* (spModel.getInstances().instance(j).value(spModel
-									.getSizeAttribute()) - spModel.sizeAttributeLowerBound)
-					/ (spModel.sizeAttributeUpperBound - spModel.sizeAttributeLowerBound))
-					/ transform.getScaleX();
-			size = Math.sqrt(area / Math.PI);
-		}
-		g2.fill(MarkerFactory.buildArrowHead(line, size,
-				true));
 	}
 
 	class PanningHandler implements MouseListener, MouseMotionListener {
@@ -950,5 +565,82 @@ public class ScatterPlotViewPanel extends JPanel implements
 
 	}
 
-	
+	private void drawClustering(Graphics2D g2) {
+		// recursively draw lines between the centroids of each cluster
+		// nb this assumes the this is a binary HC -- ie that each
+		// cluster contains two members
+		g2.setColor(spModel.getColours().getAxesColor());
+		HierarchicalCluster cluster = spModel.getHierarchicalCluster();
+		drawClusterArc(cluster, g2);
+	}
+
+	private void drawSeries(Graphics2D g2, double markerRadius) {
+		double x1;
+		double y1;
+		double x2;
+		double y2;
+		Line2D.Double line;
+		int i;
+		g2.setColor(spModel.getColours().getAxesColor());
+		Iterator<TreeSet<Instance>> allSeries = spModel.getSeries()
+				.getAllSeries().values().iterator();
+		Iterator<Instance> nextSeries;
+		Matrix noise = spModel.getNoise();
+		// for all the series
+		while (allSeries.hasNext()) {
+			nextSeries = allSeries.next().iterator();
+			if (nextSeries.hasNext()) {
+
+				// find the start point
+				i = spModel.indexOf(nextSeries.next());
+				x1 = spModel.getView().get(i, 0) + noise.get(i, 0);
+				y1 = spModel.getView().get(i, 1) + noise.get(i, 1);
+				while (nextSeries.hasNext()) {
+
+					// and draw a line and arrow head to the next point
+					i = spModel.indexOf(nextSeries.next());
+					x2 = spModel.getView().get(i, 0) + noise.get(i, 0);
+					y2 = spModel.getView().get(i, 1) + noise.get(i, 1);
+					line = new Line2D.Double(x1, y1, x2, y2);
+					g2.draw(line);
+					g2.fill(MarkerFactory.buildArrowHead(line, markerRadius,
+							true));
+					x1 = x2;
+					y1 = y2;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Recursively draw an arc between the centroids of the members of this
+	 * (binary) cluster
+	 * 
+	 * @param g2
+	 */
+	private void drawClusterArc(HierarchicalCluster cluster, Graphics2D g2) {
+
+		// if this cluster just contains another cluster then draw that
+		if (cluster.size() == 1
+				&& cluster.get(0) instanceof HierarchicalCluster)
+			drawClusterArc((HierarchicalCluster) cluster.get(0), g2);
+
+		// if this cluster contains two subclusters then draw arc between their
+		// centroids
+		if (cluster.size() == 2) {
+			HierarchicalCluster c0, c1;
+			Matrix p0, p1;
+			c0 = (HierarchicalCluster) cluster.get(0);
+			c1 = (HierarchicalCluster) cluster.get(1);
+			p0 = spModel.projection.project(c0.getCentroid());
+			p1 = spModel.projection.project(c1.getCentroid());
+			Double line = new Line2D.Double(p0.get(0, 0), p0.get(0, 1), p1.get(
+					0, 0), p1.get(0, 1));
+			g2.draw(line);
+			drawClusterArc(c0, g2);
+			drawClusterArc(c1, g2);
+		}
+
+	}
+
 }

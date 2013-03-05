@@ -609,7 +609,7 @@ public class TPPFrame extends JFrame implements ActionListener {
 		if (in != null){
 			try {
 				model = new ScatterPlotModel(2);
-				model.setInstances(in, false, null);
+				model.setInstances(in, false);
 				model.setDeepInstances(in);
 				viewPanel = new ScatterPlotViewPanel();
 				controlPanel = new ScatterPlotControlPanel();

@@ -81,7 +81,7 @@ public class TPPPanel extends JPanel implements ActionListener, ComponentListene
 			removeAll();
 			setLayout(new BorderLayout());
 			model = new ScatterPlotModel(2);
-			model.setInstances(in, false, null);
+			model.setInstances(in, false);
 			viewPanel = new ScatterPlotViewPanel();
 			viewPanel.setModel(model);
 			ScatterPlotViewPanelMouseListener l = new ScatterPlotViewPanelMouseListener(viewPanel, model);

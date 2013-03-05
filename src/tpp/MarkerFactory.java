@@ -140,7 +140,7 @@ public class MarkerFactory {
 	 */
 	public static Shape buildArrowHead(Line2D line, double arrowLength, boolean indent) {
 		Shape head = new Path2D.Double();
-
+		
 		// the end of the line
 		double x = line.getX2();
 		double y = line.getY2();

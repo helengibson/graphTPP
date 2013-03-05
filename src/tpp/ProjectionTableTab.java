@@ -109,7 +109,7 @@ public class ProjectionTableTab extends JPanel implements ActionListener  {
 					spcp.selectCombo.setSelectedIndex(attributeIndex + 1);
 					spModel.setSeparationAttribute(spModel.getInstances().attribute(attributeIndex));
 					spModel.setColourAttribute(spModel.getInstances().attribute(attributeIndex));
-					spcp.separateButton.setEnabled(spModel.getSelectAttribute() != null && spModel.getSelectAttribute().isNominal());
+					spcp.separateButton.setEnabled(spModel.getPointModel().getSelectAttribute() != null && spModel.getPointModel().getSelectAttribute().isNominal());
 //					revalidate();
 //					repaint();
 				}

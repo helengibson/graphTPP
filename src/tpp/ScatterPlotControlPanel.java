@@ -99,6 +99,7 @@ public class ScatterPlotControlPanel extends JPanel implements
 
 	private int currentTabIndex = 0;
 	private int[] selectedIndices;
+	private PointModel pointModel;
 
 	public ScatterPlotControlPanel() {
 		super();
@@ -106,6 +107,7 @@ public class ScatterPlotControlPanel extends JPanel implements
 
 	public void setModel(ScatterPlotModel tpp) throws TPPException {
 		this.spModel = tpp;
+		pointModel = spModel.getPointModel();
 		graph = spModel.getGraph();
 		spModel.addListener(this);
 		init();
@@ -167,7 +169,7 @@ public class ScatterPlotControlPanel extends JPanel implements
 
 		ViewOptionsTab viewOptionsPanel = new ViewOptionsTab(spModel);
 		AdvancedOptionsTab advancedOptionsPanel = new AdvancedOptionsTab(
-				spModel);
+				spModel, pointModel);
 		topViewOptionsPanel.add(viewOptionsPanel, BorderLayout.NORTH);
 		// topViewOptionsPanel.add(advancedOptionsPanel, BorderLayout.CENTER);
 
@@ -215,7 +217,7 @@ public class ScatterPlotControlPanel extends JPanel implements
 		selectCombo = AttributeCombo.buildCombo(spModel,
 				AttributeCombo.ALL_ATTRIBUTES, true);
 		selectCombo.setMinimumSize(min);
-		selectCombo.setSelectedAttribute(spModel.getSelectAttribute());
+		selectCombo.setSelectedAttribute(pointModel.getSelectAttribute());
 		selectCombo.addActionListener(this);
 		selectCombo
 				.setToolTipText("Choose which attribute is used to color and select points");
@@ -424,7 +426,7 @@ public class ScatterPlotControlPanel extends JPanel implements
 			Attribute cluster = spModel.cluster(
 					((JComboBox) clusterNumberCombo).getSelectedIndex() + 2,
 					inCopy, attributesUsed);
-			spModel.setSelectAttribute(cluster);
+			pointModel.setSelectAttribute(cluster);
 			spModel.setColourAttribute(cluster);
 			init();
 		}
@@ -445,62 +447,71 @@ public class ScatterPlotControlPanel extends JPanel implements
 			
 			boolean attributesExist = false;
 			String projectionAttributeOption = (String) projectionOptions.getSelectedItem();
-			ArrayList<Integer> keptIndices = new ArrayList<Integer>();
 			
 			try {
-			
+				
+				// Create a set of Instances that holds only the non numeric attributes. 
+				// This is so we don't lose any of the cluster data etc. 
+				String nonNumericAttributes = "";
+				for (int i = 0; i < currentInstances.numAttributes(); i++){
+					if(currentInstances.attribute(i).isNominal() || currentInstances.attribute(i).isString()){
+						nonNumericAttributes = nonNumericAttributes + (i + 1) + ",";
+					}
+				}
+				
+				nonNumericAttributes = nonNumericAttributes.substring(0, nonNumericAttributes.length() - 1);
+				Remove removeCurrentNumeric = new Remove();
+				removeCurrentNumeric.setAttributeIndices(nonNumericAttributes);
+				removeCurrentNumeric.setInvertSelection(true);
+				removeCurrentNumeric.setInputFormat(currentInstances);
+				Instances nonNumericInstances = Filter.useFilter(currentInstances, removeCurrentNumeric);	
+				
+				
 				if(!projectionAttributeOption.equals("All")){
 					Remove remove = new Remove();
 					String indices = "";
 					if (projectionAttributeOption.equals("Attributes")){
 						for (int a = 0; a < filteredInstances.numAttributes(); a++) {
 							String name = filteredInstances.attribute(a).name();
-							if (!name.startsWith("_")) {
-								indices = indices + (a + 1) + ",";
-								if (filteredInstances.attribute(a).isNumeric()){
-									keptIndices.add(a);
-									System.out.println("kept: " + a);
+							if (!name.startsWith("_")) {  // want attributes so don't include edges
+								if (filteredInstances.attribute(a).isNumeric()){ // want numeric so dont include the non-numeric
+									indices = indices + (a + 1) + ","; // we'll invert later so it should be the opposite
 								}
 								attributesExist = true;
-							} else if (filteredInstances.attribute(a).isNominal() || filteredInstances.attribute(a).isString())
-								indices = indices + (a + 1) + ",";
+							} 
 						}
 					} else if (projectionAttributeOption.equals("Edges")){
 						for (int a = 0; a < filteredInstances.numAttributes(); a++) {
 							String name = filteredInstances.attribute(a).name();
 							if (name.startsWith("_")) {
 								indices = indices + (a + 1) + ",";
-								keptIndices.add(a);
 								attributesExist = true;
-							} else if (filteredInstances.attribute(a).isNominal() || filteredInstances.attribute(a).isString())
-								indices = indices + (a + 1) + ",";
+							} 
 						}
 					} else if (projectionAttributeOption.equals("Custom")) {
 						int[] numIndices = getSelectedIndices();
-						System.out.println(numIndices);
 						for (int i : numIndices) {
-							indices = indices + (i + 1) + ",";
+//							indices = indices + (i + 1) + ",";
 							if (filteredInstances.attribute(i).isNumeric()){
-								keptIndices.add(i);
+								indices = indices + (i + 1) + ",";
 								attributesExist = true;
 							}
 						} 
 					}
-					if(attributesExist){
-						System.out.println(indices);
-						indices = indices.substring(0, indices.length() - 1);
-						System.out.println(indices);
 					
+					if(attributesExist){
+						indices = indices.substring(0, indices.length() - 1);
 						remove.setAttributeIndices(indices);
 						remove.setInvertSelection(true);
 						remove.setInputFormat(filteredInstances);
 						filteredInstances = Filter.useFilter(filteredInstances, remove);
+						filteredInstances = Instances.mergeInstances(filteredInstances, nonNumericInstances);
 					} else {
 						JOptionPane.showMessageDialog(this, "No attributes available to project on, \n" +
 								"defaulting to using all attributes.");
 					}
 				}
-				spModel.setInstances(filteredInstances, true, keptIndices);
+				spModel.setInstances(filteredInstances, true);
 				System.out.println("filter zero instances: " +spModel.zeroInstances());
 				if(spModel.zeroInstances())
 					JOptionPane.showMessageDialog(this,"Data has zero instances:  TPP may to fail. \n" +
@@ -514,11 +525,11 @@ public class ScatterPlotControlPanel extends JPanel implements
 		if (event.getSource() == selectCombo) {
 			// by default we should color the points by the same attribute we
 			// are selecting by
-			spModel.setSelectAttribute(selectCombo.getSelectedAttribute());
+			pointModel.setSelectAttribute(selectCombo.getSelectedAttribute());
 			spModel.setColourAttribute(selectCombo.getSelectedAttribute());
 			selectionPanel.initialiseSelectionButtons();
-			separateButton.setEnabled(spModel.getSelectAttribute() != null
-					&& spModel.getSelectAttribute().isNominal());
+			separateButton.setEnabled(pointModel.getSelectAttribute() != null
+					&& pointModel.getSelectAttribute().isNominal());
 			revalidate();
 			repaint();
 		}

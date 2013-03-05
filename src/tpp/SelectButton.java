@@ -30,6 +30,7 @@ public class SelectButton extends JButton implements ActionListener, MouseListen
 	private double min;
 	private ScatterPlotModel spModel;
 	private Color color;
+	private PointModel pointModel;
 
 	/**
 	 * Construct a button representing a particular class
@@ -40,6 +41,7 @@ public class SelectButton extends JButton implements ActionListener, MouseListen
 		super(value);
 		this.value = value;
 		this.spModel = spModel;
+		pointModel = spModel.getPointModel();
 		this.addActionListener(this);
 		this.addMouseListener(this);
 	}
@@ -81,7 +83,7 @@ public class SelectButton extends JButton implements ActionListener, MouseListen
 	 */
 	public static Vector<SelectButton> buildSelectButtons(ScatterPlotModel spModel) {
 		
-		Attribute at = spModel.getSelectAttribute();
+		Attribute at = spModel.getPointModel().getSelectAttribute();
 		ColourScheme colours = spModel.getColours();
 		Instances instances = spModel.getInstances();
 
@@ -168,12 +170,12 @@ public class SelectButton extends JButton implements ActionListener, MouseListen
 
 		// find which attribute to use to select points by
 		// and select all the points according to the button value
-		if (spModel.getSelectAttribute().isNominal()) {
+		if (pointModel.getSelectAttribute().isNominal()) {
 			String value = ((SelectButton) event.getSource()).getValue();
 			spModel.selectPointsByClassValue(value, addToExistingSelection);
 		}
 
-		if (spModel.getSelectAttribute().isNumeric()) {
+		if (pointModel.getSelectAttribute().isNumeric()) {
 			double min = ((SelectButton) event.getSource()).getMin();
 			double max = ((SelectButton) event.getSource()).getMax();
 			spModel.selectPointsByNumericRange(min, max, addToExistingSelection);
