@@ -14,6 +14,11 @@ public class GraphModel {
 	private int[] outDegree;
 	int[] degree;
 	int edgeAttributeIndex;
+	private int[] nodeSizeDegree;
+	private int[] labelSizeDegree;
+	private int minFilterLabelDegree;
+	private int maxFilterLabelDegree;
+	private int[] labelFilterDegree;
 
 	public GraphModel(Graph graph, ScatterPlotModel spModel){
 		this.graph = graph;
@@ -131,13 +136,12 @@ public class GraphModel {
 		return result;
 	}
 	
-	public int[] getDegree() {
-		System.out.println("Degree is : " + degree);
-		return degree;
+	public int[] getNodeSizeDegree() {
+		return nodeSizeDegree;
 	}
 	
 	/** Set the size attribute to be node degree */
-	public void setGraphSizeAttribute(int index) {
+	public int[] setGraphSizeAttribute(int index) {
 		System.out.println("index is: "+index);
 		// create an array with the chosen degree of each node
 		switch (index) {
@@ -154,6 +158,12 @@ public class GraphModel {
 			degree = calculateNodeOutDegree();
 			break;
 		}
+		return degree;
+	}
+	
+	public void setNodeSize(int[] degree) {
+		
+		nodeSizeDegree = degree;
 
 		// check that the degree isn't null
 		if (degree != null) {
@@ -173,6 +183,73 @@ public class GraphModel {
 			spModel.getPointModel().setSizeOnDegree(degree, lowest, highest);
 			
 		}
+	}
+	
+	public int[] getLabelDegree() {
+		return labelSizeDegree;
+	}
+	
+	public void setLabelSize(int[] degree) {
+		
+		labelSizeDegree = degree;
+
+		// check that the degree isn't null
+		if (degree != null) {
+			// find the maximum and minimum degree values
+			int length = degree.length;
+			int i;
+			int lowest = degree[0];
+			int highest = degree[0];
+
+			for (i = 1; i < length; i++) {
+				if (degree[i] < lowest)
+					lowest = degree[i];
+				if (degree[i] > highest)
+					highest = degree[i];
+			}
+			spModel.updateGraphModel(this);
+			spModel.getPointModel().setLabelSizeOnDegree(degree, lowest, highest);
+			
+		}
+	}
+	
+	public void setLabelFilter(int[] degree) {
+		
+		labelFilterDegree = degree;
+
+		// check that the degree isn't null
+		if (degree != null) {
+			// find the maximum and minimum degree values
+			int length = degree.length;
+			int i;
+			int lowest = degree[0];
+			int highest = degree[0];
+
+			for (i = 1; i < length; i++) {
+				if (degree[i] < lowest)
+					lowest = degree[i];
+				if (degree[i] > highest)
+					highest = degree[i];
+			}
+			
+			minFilterLabelDegree = lowest;
+			maxFilterLabelDegree = highest;
+			spModel.updateGraphModel(this);
+			spModel.getPointModel().setLabelFilterOnDegree(degree, lowest, highest);
+			
+		}
+	}
+	
+	public int[] getLabelFilterDegree() {
+		return labelFilterDegree;
+	}
+	
+	public int getMinLabelFilterDegree() {
+		return minFilterLabelDegree;
+	}
+	
+	public int getMaxLabelFilterDegree() {
+		return maxFilterLabelDegree;
 	}
 	
 	

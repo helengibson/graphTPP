@@ -330,13 +330,27 @@ public class ScatterPlotViewPanel extends JPanel implements
 
 				// draw the points/nodes
 				if (spModel.showGraph()) {
+					
 					ArrayList<Integer> allPoints = orderPoints(graphModel);
+					Point[] newPoints = new Point[allPoints.size()];
+					
 					for (int p : allPoints) {
 						Point point = new Point(spModel, pointModel, p);
+						newPoints[p] = point;
 						point.drawPoint(g2, transform);
-						// add labels to the points on the graph
-						if (pointModel.labels())
-							point.drawLabel(g2, transform);
+					}
+					
+					if (pointModel.labels()) {
+						for (int p : allPoints) {
+							Point point = newPoints[p];
+							// add labels to the points on the graph
+							if(pointModel.filterLabels()){
+								if ((graphModel.getLabelFilterDegree()[p] >= pointModel.getLowerLabelFilterDegreeBound())
+										&& (graphModel.getLabelFilterDegree()[p] <= pointModel.getUpperLabelFilterDegreeBound()))
+										point.drawLabel(g2, transform);
+							} else
+								point.drawLabel(g2, transform);
+						}
 					}
 				} else {
 					for (int p = 0; p < spModel.getNumDataPoints(); p++) {

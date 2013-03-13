@@ -51,11 +51,11 @@ public class Point {
 		graphModel= spModel.getGraphModel();
 				
 		// Size of the marker depends on size attribute
-		if (pointModel.getSizeAttribute() == null && graphModel.getDegree() == null) {
+		if (pointModel.getSizeAttribute() == null && graphModel.getNodeSizeDegree() == null) {
 			area = pointModel.getScaledMarkerSize();
-		} else if (graphModel.getDegree() != null) {
+		} else if (graphModel.getNodeSizeDegree() != null) {
 			area = (markerMin + markerRange
-					* (graphModel.getDegree()[point] - pointModel.sizeAttributeLowerBound)
+					* (graphModel.getNodeSizeDegree()[point] - pointModel.sizeAttributeLowerBound)
 					/ (pointModel.sizeAttributeUpperBound - pointModel.sizeAttributeLowerBound));
 		} else {
 			area = (markerMin + markerRange
@@ -65,7 +65,13 @@ public class Point {
 
 		}
 		
-		labelSize = pointModel.getLabelSize();
+		// size of the label depends on the size attribute
+		if (graphModel.getLabelDegree() == null || !pointModel.sizeLabels()){
+			labelSize = pointModel.getLabelSize();
+		} else {
+			labelSize = pointModel.getLabelSize() * (1.0 + (((double)(graphModel.getLabelDegree()[point]) - pointModel.labelSizeLowerBound)/
+					(pointModel.labelSizeUpperBound - pointModel.labelSizeLowerBound)));
+		}
 	}
 	
 	public void drawPoint(Graphics2D g2, AffineTransform transform) {
@@ -210,12 +216,11 @@ public class Point {
 		g2.setTransform(nodePosition);
 
 		Rectangle2D r = textTl.getBounds();
-		r.setRect(
-				r.getX() + (x / labelSize - (r.getWidth() / 2)),
-				r.getY()
-						+ (y / labelSize + 2 * pointModel.getMarkerRadius() / labelSize + r
-								.getHeight()), r.getWidth(),
-				r.getHeight());
+//		r.setRect(
+//				r.getX() + (x / labelSize - (r.getWidth() / 2)),
+//				r.getY() + (y / labelSize + 2 * pointModel.getMarkerRadius() / labelSize + r.getHeight()), 
+//				r.getWidth(),
+//				r.getHeight());
 
 		if (spModel.showGraph()) {
 			if ((pointModel.highlightedLabels() && (spModel
@@ -224,8 +229,8 @@ public class Point {
 							.isPointHovered(point))
 					|| (pointModel.selectedLabels() && spModel
 							.isPointSelected(point))) {
-				g2.setColor(b);
-				g2.fill(r);
+//				g2.setColor(b);
+//				g2.fill(r);
 				g2.setColor(labelColor);
 			} else
 				g2.setColor(new Color(labelColor.getRed(), labelColor.getGreen(), labelColor
@@ -233,21 +238,21 @@ public class Point {
 
 			if (!pointModel.highlightedLabels() && !pointModel.hoverLabels()
 					&& !pointModel.selectedLabels()) {
-				g2.setColor(b);
-				g2.fill(r);
+//				g2.setColor(b);
+//				g2.fill(r);
 				g2.setColor(labelColor);
 			}
 		} else {
-			g2.setColor(b);
-			g2.fill(r);
+//			g2.setColor(b);
+//			g2.fill(r);
 			g2.setColor(labelColor);
 		}
 
 		textTl.draw(
 				g2,
 				(float) (x / labelSize - (r.getWidth() / 2)),
-				(float) (y / labelSize + 2 * pointModel.getMarkerRadius() / labelSize + r
-						.getHeight()));
+//				(float) (y / labelSize + 2 * pointModel.getMarkerRadius() / labelSize + r.getHeight()));
+				(float) (y / labelSize + r.getHeight()/2));
 		g2.setTransform(saveXform);
 	}
 

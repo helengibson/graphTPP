@@ -33,7 +33,17 @@ public class PointModel {
 	double sizeAttributeLowerBound;
 	double sizeAttributeUpperBound;
 
+	private boolean sizeLabels;
+	private boolean filterLabels;
 
+	double labelSizeLowerBound;
+	double labelSizeUpperBound;
+
+	private int lowerLabelFilterDegreeBound;
+
+	private int upperLabelFilterDegreeBound;
+
+	
 	public PointModel(ScatterPlotModel spModel) {
 		this.spModel = spModel;
 	}
@@ -154,6 +164,24 @@ public class PointModel {
 		labelSize = t;
 		spModel.fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
 	}
+	
+	/** Use the degree to size the labels */
+	public boolean sizeLabels() {
+		return sizeLabels;
+	}
+	
+	public void setSizeLabels(boolean b){
+		sizeLabels = b;
+	}
+	
+	/** Use the degree to filter the view of the labels */
+	public boolean filterLabels() {
+		return filterLabels;
+	}
+	
+	public void setFilterLabels(boolean b){
+		filterLabels = b;
+	}
 		
 	public Attribute getShapeAttribute() {
 		return shapeAttribute;
@@ -226,6 +254,42 @@ public class PointModel {
 		this.fillAttribute = fillAttribute;
 		spModel.fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
 	}
+	
+	public void setLabelSizeOnDegree(int[] degree, double lowest, double highest) {
+		// assign these values to the sizing bounds
+		double v;
+		labelSizeLowerBound = lowest;
+		labelSizeUpperBound = highest;
+		for (int j = 0; j < spModel.getInstances().numInstances(); j++) {
+			v = degree[j];
+			if (v > labelSizeUpperBound)
+				sizeAttributeUpperBound = v;
+			if (v < labelSizeLowerBound)
+				sizeAttributeLowerBound = v;
+		}
+		spModel.fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
+	}
 
+	public void setLabelFilterOnDegree(int[] degree, double lowest, double highest) {
+//		spModel.fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
+	}
+
+	public void setLowerFilterDegreeRange(int lowerValue) {
+		lowerLabelFilterDegreeBound = lowerValue;
+		spModel.fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
+	}
+
+	public void setUpperFilterDegreeRange(int upperValue) {
+		upperLabelFilterDegreeBound = upperValue;
+		spModel.fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
+	}
+	
+	public int getLowerLabelFilterDegreeBound() {
+		return lowerLabelFilterDegreeBound;
+	}
+	
+	public int getUpperLabelFilterDegreeBound() {
+		return upperLabelFilterDegreeBound;
+	}
 
 }

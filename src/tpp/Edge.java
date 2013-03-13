@@ -145,11 +145,11 @@ public class Edge {
 		double markerMin = pointModel.getMinMarkerSize();
 		double markerRange = pointModel.getMarkerRange();
 		
-		if (pointModel.getSizeAttribute() == null && graphModel.getDegree() == null) {
+		if (pointModel.getSizeAttribute() == null && graphModel.getNodeSizeDegree() == null) {
 			size = Math.sqrt(markerRadius / Math.PI);
-		} else if (graphModel.getDegree() != null) {
+		} else if (graphModel.getNodeSizeDegree() != null) {
 			double area = (markerMin + markerRange
-					* (graphModel.getDegree()[j] - pointModel.sizeAttributeLowerBound)
+					* (graphModel.getNodeSizeDegree()[j] - pointModel.sizeAttributeLowerBound)
 					/ (pointModel.sizeAttributeUpperBound - pointModel.sizeAttributeLowerBound))
 					/ transform.getScaleX();
 			size = Math.sqrt(area / Math.PI);

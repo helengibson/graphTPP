@@ -340,7 +340,6 @@ public class ScatterPlotControlPanel extends JPanel implements
 		clusterOptionsCB = new JComboBox(attributeSelectionOptions);
 		clusterOptionsCB.addActionListener(this);
 		clusterOptionsCB.setToolTipText("Choose the attributes that will be used in the projection");
-//		clusterOptionsCB.setSelectedItem(currentClusterSelection);
 
 		clusterButton = new JButton("Create clusters:");
 		clusterButton.addActionListener(this);
