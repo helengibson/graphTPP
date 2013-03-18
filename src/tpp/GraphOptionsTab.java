@@ -41,20 +41,9 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 	private JCheckBox filterEdgeCheckBox;
 	private JCheckBox edgeWeightsCheckBox;
 
-//	private JRadioButton sourceRB;
-//	private JRadioButton targetRB;
-//	private JRadioButton mixedRB;
-//	private JRadioButton noneRB;
-	
 	private JLabel edgeColorLabel;
 	private JComboBox<String> edgeColorCombo; 
 	private String[] edgeColorOptions = {"None", "Source", "Target", "Mixed"};
-	
-//	private JRadioButton straightRB;
-//	private JRadioButton curvedRB;
-//	private JRadioButton hideRB;
-//	private JRadioButton bundledRB;
-//	private JRadioButton fannedRB;
 	
 	private JLabel edgeShapeLabel;
 	private JComboBox<String> edgeShapeCombo;
@@ -68,10 +57,6 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 
 	private JCheckBox showLabelsCheckBox;
 	private JCheckBox nodeColorCB;
-	
-//	private JCheckBox showHighlightedLabels;
-//	private JCheckBox showHoverLabels;
-//	private JCheckBox showSelectedLabels;
 	
 	private JLabel labelsLabel;
 	private JComboBox<String> labelsCombo;
@@ -90,8 +75,9 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 	private JLabel labelFilterLowerValue;
 	private JLabel labelFilterUpperValue;
 	private RangeSlider labelFilter;
-
-
+	private JLabel rangeSliderLowerValue;
+	private JLabel rangeSliderUpperValue;
+	private RangeSlider rangeSlider;
 
 	public GraphOptionsTab(ScatterPlotModel spModel) {
 
@@ -137,30 +123,15 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 
 		addDrawEdgeOptions(graphPanel, graphGrid);
 
-//		graphGrid.gridx = 0;
-//		graphGrid.gridy++;
-//
-//		addEdgeType(graphPanel, graphGrid);
-//
 		graphGrid.gridx = 0;
 		graphGrid.gridy++;
 
 		chooseVisibleEdges(graphPanel, graphGrid);
-//
-//		graphGrid.gridx = 0;
-//		graphGrid.gridy++;
-//
-//		addSliders(graphPanel, graphGrid);
-//
+
 		graphGrid.gridx = 0;
 		graphGrid.gridy++;
 
 		addLabelsPanel(graphPanel, graphGrid);
-
-		graphGrid.gridx = 0;
-		graphGrid.gridy++;
-
-		addEdgeFilterPanel(graphPanel, graphGrid);
 	}
 
 	private void addLoadGraph(JPanel panel, GridBagConstraints grid) {
@@ -242,37 +213,6 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		TitledBorder border = BorderFactory.createTitledBorder(raisedetched,
 				"Edge Color and Shape:");
 		edgePanel.setBorder(border);
-
-//		sourceRB = new JRadioButton("Source");
-//		targetRB = new JRadioButton("Target");
-//		mixedRB = new JRadioButton("Mixed");
-//		noneRB = new JRadioButton("None");
-//
-//		sourceRB.setSelected(edgeModel.sourceColorEdges());
-//		targetRB.setSelected(edgeModel.targetColorEdges());
-//		mixedRB.setSelected(edgeModel.mixedColorEdges());
-//		noneRB.setSelected(edgeModel.defaultColorEdges());
-//
-//		sourceRB.setEnabled(false);
-//		targetRB.setEnabled(false);
-//		mixedRB.setEnabled(false);
-//		noneRB.setEnabled(false);
-//
-//		ButtonGroup group = new ButtonGroup();
-//		group.add(noneRB);
-//		group.add(mixedRB);
-//		group.add(sourceRB);
-//		group.add(targetRB);
-//
-//		sourceRB.addItemListener(this);
-//		targetRB.addItemListener(this);
-//		mixedRB.addItemListener(this);
-//		noneRB.addItemListener(this);
-//
-//		noneRB.setToolTipText("Color all edges grey");
-//		mixedRB.setToolTipText("Color edges based on a combination of their source and target nodes");
-//		sourceRB.setToolTipText("Color edge based on source node color");
-//		targetRB.setToolTipText("Color edges based on their target node color");
 		
 		edgeColorLabel = new JLabel("Edge color:", JLabel.RIGHT);
 		edgeColorCombo = new JComboBox<>(edgeColorOptions);
@@ -305,114 +245,12 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 
 		edgePanel.add(edgeShapeCombo, edgeGrid);
 
-//		edgeColorPanel.add(noneRB, edgeColorGrid);
-//
-//		edgeColorGrid.gridx = 1;
-//		edgeColorGrid.gridwidth = 1;
-//
-//		edgeColorPanel.add(sourceRB, edgeColorGrid);
-//
-//		edgeColorGrid.gridx = 2;
-//		edgeColorGrid.gridwidth = 1;
-//
-//		edgeColorPanel.add(targetRB, edgeColorGrid);
-//
-//		edgeColorGrid.gridx = 3;
-//		edgeColorGrid.gridwidth = 1;
-//
-//		edgeColorPanel.add(mixedRB, edgeColorGrid);
-
 		viewOptionsGrid.gridx = 0;
 		viewOptionsGrid.gridy++;
 
 		viewOptionsPanel.add(edgePanel, viewOptionsGrid);
 
 	}
-
-//	private void addEdgeType(JPanel viewOptionsPanel,
-//			GridBagConstraints viewOptionsGrid) {
-//
-//		JPanel edgeStylePanel = new JPanel();
-//		edgeStylePanel.setLayout(new GridBagLayout());
-//		GridBagConstraints edgeStyleGrid = new GridBagConstraints();
-//
-//		edgeStyleGrid.fill = GridBagConstraints.BOTH;
-//		edgeStyleGrid.weightx = 1.0;
-//		edgeStyleGrid.gridy = 0;
-//		edgeStyleGrid.insets = new Insets(0, 0, 0, 0);
-//
-//		TitledBorder border = BorderFactory.createTitledBorder(raisedetched,
-//				"Pick an edge style:");
-//		edgeStylePanel.setBorder(border);
-//
-//		straightRB = new JRadioButton("Straight");
-//		curvedRB = new JRadioButton("Curved");
-//		hideRB = new JRadioButton("Hide");
-//		bundledRB = new JRadioButton("Bundle");
-//		fannedRB = new JRadioButton("Fan");
-//
-//		straightRB.setSelected(edgeModel.straightEdges());
-//		curvedRB.setSelected(edgeModel.bezierEdges());
-//		bundledRB.setSelected(edgeModel.bundledEdges());
-//		fannedRB.setSelected(edgeModel.fannedEdges());
-//		hideRB.setSelected(!spModel.showGraph());
-//
-//		straightRB.setEnabled(false);
-//		curvedRB.setEnabled(false);
-//		hideRB.setEnabled(false);
-//		bundledRB.setEnabled(false);
-//		fannedRB.setEnabled(false);
-//
-//		ButtonGroup group = new ButtonGroup();
-//		group.add(straightRB);
-//		group.add(curvedRB);
-//		group.add(hideRB);
-//		group.add(bundledRB);
-//		group.add(fannedRB);
-//
-//		straightRB.addItemListener(this);
-//		curvedRB.addItemListener(this);
-//		hideRB.addItemListener(this);
-//		bundledRB.addItemListener(this);
-//		fannedRB.addItemListener(this);
-//
-//		straightRB.setToolTipText("Use straight edges");
-//		curvedRB.setToolTipText("Use curved edges");
-//		hideRB.setToolTipText("Hide all edges");
-//		bundledRB.setToolTipText("Bundle edges from centroids");
-//		fannedRB.setToolTipText("Fan edges");
-//
-//		edgeStyleGrid.gridx = 0;
-//		edgeStyleGrid.gridwidth = 1;
-//
-//		edgeStylePanel.add(straightRB, edgeStyleGrid);
-//
-//		edgeStyleGrid.gridx = 1;
-//		edgeStyleGrid.gridwidth = 1;
-//
-//		edgeStylePanel.add(curvedRB, edgeStyleGrid);
-//
-//		edgeStyleGrid.gridx = 2;
-//		edgeStyleGrid.gridwidth = 1;
-//
-//		edgeStylePanel.add(bundledRB, edgeStyleGrid);
-//
-//		edgeStyleGrid.gridx = 3;
-//		edgeStyleGrid.gridwidth = 1;
-//
-//		edgeStylePanel.add(fannedRB, edgeStyleGrid);
-//
-//		edgeStyleGrid.gridx = 4;
-//		edgeStyleGrid.gridwidth = 1;
-//
-//		edgeStylePanel.add(hideRB, edgeStyleGrid);
-//
-//		viewOptionsGrid.gridx = 0;
-//		viewOptionsGrid.gridy++;
-//
-//		viewOptionsPanel.add(edgeStylePanel, viewOptionsGrid);
-//
-//	}
 
 	private void chooseVisibleEdges(JPanel panel, GridBagConstraints grid) {
 
@@ -451,7 +289,6 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		transparencySlider.addChangeListener(this);
 		transparencySlider.setToolTipText("Change the amount of transparency for the non-highlighted point and edges");
 		
-		
 		edgeDirectionGrid.gridy++;
 		edgeDirectionGrid.gridx = 0;
 		edgeDirectionGrid.gridwidth = 1;
@@ -474,6 +311,8 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		edgeDirectionPanel.add(transparencySlider, edgeDirectionGrid);
 		
 		addGraphSizeSelector(edgeDirectionPanel, edgeDirectionGrid);
+		
+		addEdgeFilter(edgeDirectionPanel, edgeDirectionGrid);
 
 		panel.add(edgeDirectionPanel, grid);
 
@@ -529,8 +368,7 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		graphSizeCombo.setMinimumSize(min);
 		graphSizeCombo.setSelectedIndex(0);
 		graphSizeCombo.addActionListener(this);
-		graphSizeCombo
-				.setToolTipText("Choose which graph metric is used to determine the size of each point");
+		graphSizeCombo.setToolTipText("Choose which graph metric is used to determine the size of each point");
 
 		JLabel sizeAttributeSelectorLabel = new JLabel("Size points by: ",
 				JLabel.LEFT);
@@ -696,30 +534,21 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		viewOptionsPanel.add(labelPanel, viewOptionsGrid);
 	}
 
-	private void addEdgeFilterPanel(JPanel viewOptionsPanel,
-			GridBagConstraints viewOptionsGrid) {
+	private void addEdgeFilter(JPanel panel, GridBagConstraints grid) {
 
-		JPanel filterPanel = new JPanel();
-		filterPanel.setLayout(new GridBagLayout());
-		GridBagConstraints filterGrid = new GridBagConstraints();
-
-		filterGrid.fill = GridBagConstraints.BOTH;
-		filterGrid.weightx = 1.0;
-		filterGrid.gridy = 0;
-		filterGrid.insets = new Insets(0, 0, 0, 0);
-
-		TitledBorder border = BorderFactory.createTitledBorder(raisedetched, "Edge weight filter");
-		filterPanel.setBorder(border);
+		grid.gridy++;
+		grid.gridx = 0;
+		grid.gridwidth = GridBagConstraints.REMAINDER;
 
 		edgeWeightFilterCB = new JCheckBox("Filter edges according to their weight");
 		edgeWeightFilterCB.setEnabled(false);
 		edgeWeightFilterCB.setSelected(edgeModel.filterEdgesByWeight());
 		edgeWeightFilterCB.addActionListener(this);
 
-		final JLabel rangeSliderLowerValue = new JLabel();
-		final JLabel rangeSliderUpperValue = new JLabel();
+		rangeSliderLowerValue = new JLabel();
+		rangeSliderUpperValue = new JLabel();
 
-		RangeSlider rangeSlider = new RangeSlider();
+		rangeSlider = new RangeSlider();
 
 		if (spModel.showGraph()) {
 			rangeSlider.setMinimum((int) Math.floor(edgeModel.getMinEdgeWeight()));
@@ -752,23 +581,19 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 			}
 		});
 
-		filterGrid.gridy = 0;
-		filterGrid.gridx = 0;
-		filterPanel.add(edgeWeightFilterCB, filterGrid);
+		panel.add(edgeWeightFilterCB, grid);
 		
-		filterGrid.gridy = 1;
-		filterGrid.gridx = 0;
-		filterPanel.add(rangeSliderLowerValue, filterGrid);
+		grid.gridy++;
+		grid.gridx = 0;
+		panel.add(rangeSliderLowerValue, grid);
 
-		filterGrid.gridx++;
-		filterPanel.add(rangeSliderUpperValue, filterGrid);
+		grid.gridx++;
+		panel.add(rangeSliderUpperValue, grid);
 
-		filterGrid.gridy = 2;
-		filterGrid.gridx = 0;
-		filterGrid.gridwidth = GridBagConstraints.REMAINDER;
-		filterPanel.add(rangeSlider, filterGrid);
-
-		viewOptionsPanel.add(filterPanel, viewOptionsGrid);
+		grid.gridy++;
+		grid.gridx = 0;
+		grid.gridwidth = GridBagConstraints.REMAINDER;
+		panel.add(rangeSlider, grid);
 
 	}
 
@@ -778,23 +603,11 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		edgeWeightsCheckBox.setEnabled(true);
 		edgeColorCombo.setEnabled(true);
 		edgeShapeCombo.setEnabled(true);
-//		noneRB.setEnabled(true);
-//		sourceRB.setEnabled(true);
-//		targetRB.setEnabled(true);
-//		mixedRB.setEnabled(true);
-//		straightRB.setEnabled(true);
-//		curvedRB.setEnabled(true);
-//		hideRB.setEnabled(true);
-//		bundledRB.setEnabled(true);
-//		fannedRB.setEnabled(true);
 		incomingCB.setEnabled(true);
 		outgoingCB.setEnabled(true);
 		transparencySlider.setEnabled(true);
 		graphSizeCombo.setEnabled(true);
 		showLabelsCheckBox.setEnabled(true);
-//		showHighlightedLabels.setEnabled(true);
-//		showHoverLabels.setEnabled(true);
-//		showSelectedLabels.setEnabled(true);
 		nodeColorCB.setEnabled(true);
 		labelsCombo.setEnabled(true);
 		labelSlider.setEnabled(true);
@@ -871,7 +684,6 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		}
 
 		if (event.getSource() == graphSizeCombo) {
-			// sizeCombo.setSelectedIndex(0);
 			pointModel.setSizeAttribute(null);
 			int[] d = graphModel.setGraphSizeAttribute(graphSizeCombo.getSelectedIndex());
 			graphModel.setNodeSize(d);
@@ -911,6 +723,14 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 
 		if (event.getSource() == edgeWeightFilterCB) {
 			edgeModel.setFilterEdgesByWeight(edgeWeightFilterCB.isSelected());
+			if (edgeWeightFilterCB.isSelected()) {
+				rangeSlider.setMinimum((int) Math.floor(edgeModel.getMinEdgeWeight()));
+				rangeSlider.setMaximum((int) Math.ceil(edgeModel.getMaxEdgeWeight()));
+				rangeSlider.setValue((int) Math.floor(edgeModel.getMinEdgeWeight()));
+				rangeSlider.setUpperValue((int) Math.ceil(edgeModel.getMaxEdgeWeight()));
+				rangeSliderLowerValue.setText(String.valueOf(rangeSlider.getValue()));
+				rangeSliderUpperValue.setText(String.valueOf(rangeSlider.getUpperValue()));
+			}
 		}
 
 	}

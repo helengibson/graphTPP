@@ -235,7 +235,6 @@ public class GraphModel {
 			minFilterLabelDegree = lowest;
 			maxFilterLabelDegree = highest;
 			spModel.updateGraphModel(this);
-			spModel.getPointModel().setLabelFilterOnDegree(degree, lowest, highest);
 			
 		}
 	}

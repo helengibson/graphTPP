@@ -270,10 +270,6 @@ public class PointModel {
 		spModel.fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
 	}
 
-	public void setLabelFilterOnDegree(int[] degree, double lowest, double highest) {
-//		spModel.fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
-	}
-
 	public void setLowerFilterDegreeRange(int lowerValue) {
 		lowerLabelFilterDegreeBound = lowerValue;
 		spModel.fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
