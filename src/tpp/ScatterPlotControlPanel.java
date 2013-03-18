@@ -43,6 +43,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.apache.batik.svggen.font.Point;
+import org.apache.commons.math.genetics.SelectionPolicy;
 import org.apache.commons.math.optimization.fitting.CurveFitter;
 
 import weka.classifiers.Classifier;
@@ -92,8 +93,6 @@ public class ScatterPlotControlPanel extends JPanel implements
 	private Dimension min = new Dimension(100, 20);
 	private JTabbedPane tabbedPane;
 	protected ScatterPlotModel spModel;
-	private JButton dbConnectButton;
-	private JButton viewInDBButton;
 	private JSplitPane splitter;
 	private JPanel topSSPanel;
 	private Graph graph;
@@ -130,15 +129,14 @@ public class ScatterPlotControlPanel extends JPanel implements
 		add(splitter, BorderLayout.CENTER);
 
 		splitter.setOneTouchExpandable(true);
-		// splitter.setDividerLocation(300);
+		 splitter.setDividerLocation(300);
 		splitter.setResizeWeight(0.8);
-		splitter.setDividerLocation(splitter.getSize().width - 350);
+//		splitter.setDividerLocation(splitter.getSize().height - 250);
 
 		// Provide a preferred size for the split pane.
-		splitter.setPreferredSize(new Dimension(200, 350));
+		splitter.setPreferredSize(new Dimension(200, 300));
 
 		addSelectionPanel();
-
 		addTabbedPane(currentTabIndex);
 
 		revalidate();
@@ -150,11 +148,9 @@ public class ScatterPlotControlPanel extends JPanel implements
 		JPanel topViewOptionsPanel = new JPanel(new BorderLayout(5, 5));
 		JPanel topGraphPanel = new JPanel(new BorderLayout(5, 5));
 
-		ProjectionTableTab projectionPanel = new ProjectionTableTab(this,
-				spModel);
+		ProjectionTableTab projectionPanel = new ProjectionTableTab(this,spModel);
 
-		SelectedAttributesTableTab selectedPanel = new SelectedAttributesTableTab(
-				this, spModel);
+		SelectedAttributesTableTab selectedPanel = new SelectedAttributesTableTab(this, spModel);
 
 		tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("View Options", topViewOptionsPanel);
@@ -169,10 +165,9 @@ public class ScatterPlotControlPanel extends JPanel implements
 		// //////////////////////////////////////////////
 
 		ViewOptionsTab viewOptionsPanel = new ViewOptionsTab(spModel);
-		AdvancedOptionsTab advancedOptionsPanel = new AdvancedOptionsTab(
-				spModel, pointModel);
+		AdvancedOptionsTab advancedOptionsPanel = new AdvancedOptionsTab(spModel, pointModel);
 		topViewOptionsPanel.add(viewOptionsPanel, BorderLayout.NORTH);
-		// topViewOptionsPanel.add(advancedOptionsPanel, BorderLayout.CENTER);
+		topViewOptionsPanel.add(advancedOptionsPanel, BorderLayout.SOUTH);
 
 		// ////////////////////////////////////////////
 
@@ -185,11 +180,8 @@ public class ScatterPlotControlPanel extends JPanel implements
 
 		ChangeListener changeListener = new ChangeListener() {
 			public void stateChanged(ChangeEvent changeEvent) {
-				JTabbedPane sourceTabbedPane = (JTabbedPane) changeEvent
-						.getSource();
+				JTabbedPane sourceTabbedPane = (JTabbedPane) changeEvent.getSource();
 				currentTabIndex = sourceTabbedPane.getSelectedIndex();
-				System.out.println("Tab changed to: "
-						+ sourceTabbedPane.getTitleAt(currentTabIndex));
 			}
 		};
 		tabbedPane.addChangeListener(changeListener);
@@ -204,8 +196,7 @@ public class ScatterPlotControlPanel extends JPanel implements
 		splitter.setTopComponent(topSSPanel);
 
 		JPanel selectSeparatePanel = new JPanel();
-		selectSeparatePanel.setBorder(BorderFactory
-				.createEtchedBorder(EtchedBorder.RAISED));
+		selectSeparatePanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
 
 		selectSeparatePanel.setLayout(new GridBagLayout());
 		GridBagConstraints selectSeparateGrid = new GridBagConstraints();
@@ -215,15 +206,12 @@ public class ScatterPlotControlPanel extends JPanel implements
 		selectSeparateGrid.gridy = 0;
 		selectSeparateGrid.insets = new Insets(1, 2, 1, 2);
 
-		selectCombo = AttributeCombo.buildCombo(spModel,
-				AttributeCombo.ALL_ATTRIBUTES, true);
+		selectCombo = AttributeCombo.buildCombo(spModel,AttributeCombo.ALL_ATTRIBUTES, true);
 		selectCombo.setMinimumSize(min);
 		selectCombo.setSelectedAttribute(pointModel.getSelectAttribute());
 		selectCombo.addActionListener(this);
-		selectCombo
-				.setToolTipText("Choose which attribute is used to color and select points");
-		JLabel selectAttributeSelectorLabel = new JLabel("Color points by: ",
-				JLabel.RIGHT);
+		selectCombo.setToolTipText("Choose which attribute is used to color and select points");
+		JLabel selectAttributeSelectorLabel = new JLabel("Color points by: ",JLabel.RIGHT);
 
 		selectCombo.setEditable(true);
 
@@ -231,8 +219,7 @@ public class ScatterPlotControlPanel extends JPanel implements
 		selectSeparateGrid.gridx = 0;
 		selectSeparateGrid.gridwidth = 1;
 
-		selectSeparatePanel.add(selectAttributeSelectorLabel,
-				selectSeparateGrid);
+		selectSeparatePanel.add(selectAttributeSelectorLabel,selectSeparateGrid);
 
 		selectSeparateGrid.gridx++;
 		selectSeparateGrid.gridwidth = 1;
@@ -313,10 +300,12 @@ public class ScatterPlotControlPanel extends JPanel implements
 
 		// add selection panel
 		selectionPanel = new SelectionPanel(spModel);
+//		selectionPanel.setMaximumSize(new Dimension(210, this.getHeight()-selectionPanel.getY()-tabbedPane.getY()));
 
 		selectSeparateGrid.gridy++;
 		selectSeparateGrid.gridx = 0;
 		selectSeparateGrid.gridwidth = 3;
+		selectSeparateGrid.gridheight = GridBagConstraints.REMAINDER;
 		selectSeparateGrid.fill = GridBagConstraints.BOTH;
 
 		selectSeparatePanel.add(selectionPanel, selectSeparateGrid);

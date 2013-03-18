@@ -19,17 +19,11 @@ import javax.swing.ScrollPaneLayout;
 public class SelectionPanel extends JPanel implements TPPModelEventListener {
 
 	private Vector<SelectButton> selectButtons;
-
 	private ScatterPlotModel spModel;
-
 	private GridBagConstraints grid;
-	
 	private JScrollPane scroller;
-	
 	private JPanel buttonPanel;
-
 	private GridBagConstraints buttonGrid;
-
 	private GridBagConstraints bg;
 
 	public SelectionPanel(ScatterPlotModel spModel) {
@@ -69,23 +63,27 @@ public class SelectionPanel extends JPanel implements TPPModelEventListener {
 		buttonGrid.weightx = 1.0;
 		
 		scroller = new JScrollPane(buttonPanel);
-		scroller.setMinimumSize(new Dimension(210,150));
-		scroller.setPreferredSize(new Dimension(210,150));
-		
-		grid.gridx = 2;
-		
-		add(scroller,grid);
-				
+						
 		buttonGrid.gridy = 0;
 		buttonGrid.gridx = 0;
+		int buttonCount = 0;
 		for (SelectButton button : selectButtons) {
 			buttonGrid.gridx = 0;
 			buttonGrid.gridwidth = 1;
 			buttonPanel.add(button, buttonGrid);
 			buttonGrid.gridy++;
+			buttonCount++;
 		}
-			revalidate();
-			repaint();
+		
+		scroller.setMinimumSize(new Dimension(210,150));
+		scroller.setPreferredSize(new Dimension(210,150));
+		scroller.setMaximumSize(new Dimension(210, buttonCount*30));
+		
+		grid.gridx = 2;
+		add(scroller,grid);
+		
+		revalidate();
+		repaint();
 	}
 	
 	public Vector<SelectButton> getSelectButtons() {
