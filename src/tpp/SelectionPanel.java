@@ -66,18 +66,15 @@ public class SelectionPanel extends JPanel implements TPPModelEventListener {
 						
 		buttonGrid.gridy = 0;
 		buttonGrid.gridx = 0;
-		int buttonCount = 0;
 		for (SelectButton button : selectButtons) {
 			buttonGrid.gridx = 0;
 			buttonGrid.gridwidth = 1;
 			buttonPanel.add(button, buttonGrid);
 			buttonGrid.gridy++;
-			buttonCount++;
 		}
 		
 		scroller.setMinimumSize(new Dimension(210,150));
 		scroller.setPreferredSize(new Dimension(210,150));
-		scroller.setMaximumSize(new Dimension(210, buttonCount*30));
 		
 		grid.gridx = 2;
 		add(scroller,grid);

@@ -30,6 +30,7 @@ public class GraphImporter {
 
 	String unimportedEdges = "";
 
+
 	/**
 	 * Imports a graph from a separate edge list csv file
 	 * 
@@ -146,6 +147,7 @@ public class GraphImporter {
 	}
 
 	private void readLine(String aLine) {
+		System.out.println(aLine);
 		Scanner lineScanner = new Scanner(aLine).useDelimiter(delimiter);
 
 		String nodeA = lineScanner.next();

@@ -312,7 +312,20 @@ public class ScatterPlotViewPanel extends JPanel implements
 						Edge edge = new Edge(cnxn, edgeModel, spModel);
 						edge.drawEdge(g2, strokeWidth.getLineWidth());
 					}
+					
+//					double[][] clusters = edgeModel.getClusterEdgesDrawn();
+//					if(clusters != null) {
+//						for (int i = 0; i < clusters.length; i++) {
+//							for (int j = 0; j < clusters.length; j++) {
+//								System.out.print(clusters[i][j] + ", ");
+//							}
+//							System.out.print("\n");
+//						}
+//					}
+						
 				}
+					
+				
 				// draw clustering
 				if (spModel.showHierarchicalClustering())
 					drawClustering(g2);
@@ -371,6 +384,7 @@ public class ScatterPlotViewPanel extends JPanel implements
 					spModel.updateNoise();
 			}
 		}
+	}
 
 		/**
 		 * Orders the points so that those nodes that are selected and those nodes connected to
@@ -396,7 +410,7 @@ public class ScatterPlotViewPanel extends JPanel implements
 			allPoints.addAll(selectedPoints);
 			return allPoints;
 		}
-	}
+	
 	private void drawTarget(Graphics2D g2, double markerRadius) {
 		double x;
 		double y;

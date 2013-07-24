@@ -129,12 +129,12 @@ public class ScatterPlotControlPanel extends JPanel implements
 		add(splitter, BorderLayout.CENTER);
 
 		splitter.setOneTouchExpandable(true);
-		 splitter.setDividerLocation(300);
+//		splitter.setDividerLocation(300);
 		splitter.setResizeWeight(0.8);
 //		splitter.setDividerLocation(splitter.getSize().height - 250);
 
 		// Provide a preferred size for the split pane.
-		splitter.setPreferredSize(new Dimension(200, 300));
+		splitter.setPreferredSize(new Dimension(200, 100));
 
 		addSelectionPanel();
 		addTabbedPane(currentTabIndex);
@@ -214,7 +214,6 @@ public class ScatterPlotControlPanel extends JPanel implements
 		JLabel selectAttributeSelectorLabel = new JLabel("Color points by: ",JLabel.RIGHT);
 
 		selectCombo.setEditable(true);
-
 
 		selectSeparateGrid.gridx = 0;
 		selectSeparateGrid.gridwidth = 1;
@@ -525,6 +524,7 @@ public class ScatterPlotControlPanel extends JPanel implements
 			// by default we should color the points by the same attribute we
 			// are selecting by
 			pointModel.setSelectAttribute(selectCombo.getSelectedAttribute());
+			System.out.println(pointModel.getSelectAttribute());
 			spModel.setColourAttribute(selectCombo.getSelectedAttribute());
 			selectionPanel.initialiseSelectionButtons();
 			separateButton.setEnabled(pointModel.getSelectAttribute() != null

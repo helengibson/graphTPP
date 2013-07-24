@@ -1,0 +1,21 @@
+@relation example_input-weka.filters.unsupervised.attribute.NominalToString-Clast
+
+@attribute b numeric
+@attribute c numeric
+@attribute d numeric
+@attribute _one numeric
+@attribute _two numeric
+@attribute _three numeric
+@attribute _four numeric
+@attribute _five numeric
+@attribute _six numeric
+@attribute class {p,q,r}
+@attribute NodeId string
+
+@data
+1,1,0,0,1,0,0,0,0,p,one
+0,0,1,0,0,1,1,0,0,q,two
+1,0,1,1,0,0,0,0,0,p,three
+1,0,0,0,0,0,0,0,0,r,four
+0,1,0,1,0,0,0,0,0,r,five
+0,1,1,0,0,0,0,1,0,q,six

@@ -45,11 +45,11 @@ public class Edge {
 	}
 
 	/**
-	 * Sets up drawing the edge depending on whether edges are filtered by wieght or not. 
+	 * Sets up drawing the edge depending on whether edges are filtered by weight or not. 
 	 * @param g The Graphics2D context for the scatterplotviewplan
 	 * @param lineWidth what the current strokewidth for  edges has been defined at. 
 	 */
-	public void drawEdge(Graphics2D g, float lineWidth) {
+	public void drawEdge(Graphics2D g, float lineWidth) { 
 		
 		// If we're filtering the edges by weight then only draw those edges that fall within the weight range
 		if (edgeModel.filterEdgesByWeight()) {
@@ -74,8 +74,8 @@ public class Edge {
 		Color c;
 		
 		int transparency = spModel.getTransparency();
-		double curveFactor = edgeModel.getCurveFactor();
-		double[] clusterEdgesDrawn = edgeModel.getClusterEdgesDrawn();
+		double bundleSpacing = edgeModel.getBundleSpacing();
+		double[][] clusterEdgesDrawn = edgeModel.getClusterEdgesDrawn();
 		{
 			Instance source = cnxn.getSourceInstance();
 			Instance target = cnxn.getTargetInstance();
@@ -114,19 +114,24 @@ public class Edge {
 
 					// Code from gephi
 					// TODO Add proper attribution(preview.plugin.renderers.edgerender.java)
+					
 					if (edgeModel.bezierEdges())
 						drawBezierEdge(g2, x1, y1, x2, y2);
-					else if (edgeModel.bundledEdges()) 
-						drawBundledEdges(i, j, x1, y1, x2, y2, g2, clusterEdgesDrawn,curveFactor);
+					else if (edgeModel.bundledEdges()) {
+						if (edgeModel.directed())
+							drawBundledEdges(i, j, x1, y1, x2, y2, g2, clusterEdgesDrawn,bundleSpacing);
+						else
+							drawUndirectedBundledEdges(i, j, x1, y1, x2, y2, g2, clusterEdgesDrawn, bundleSpacing);
+					}
 					else if (edgeModel.fannedEdges()) 
 						drawFannedEdges(i, j, x1, y1, x2, y2, g2);
 					else if (edgeModel.intelligentEdges())
 						drawIntelligentBundledEdges(i, j, x1, y1, x2, y2, g2,
-								clusterEdgesDrawn, curveFactor);
+								clusterEdgesDrawn, bundleSpacing);
 					else {
 						line = new Line2D.Double(x1, y1, x2, y2);
 						g2.draw(line);
-						if (edgeModel.arrowedEdges()) {
+						if (edgeModel.directed()) {
 							drawArrowHead(g2, line, j);
 						}
 					}
@@ -135,6 +140,8 @@ public class Edge {
 		}
 	}
 	
+
+
 	public void drawArrowHead(Graphics2D g2, Line2D line, int j) {
 		AffineTransform transform = spModel.getTransform();
 		double size;
@@ -363,38 +370,70 @@ public class Edge {
 
 		 }
 	}
-
+	/**
+	 * 
+	 * @param i source node
+	 * @param j target node
+	 * @param x1 source node x position
+	 * @param y1 source node y position
+	 * @param x2 target node x position
+	 * @param y2 target node y position
+	 * @param g2 the graphics environment
+	 * @param k edges that have already been drawn
+	 * @param curveFactor how much to curve each line
+	 */
 	private void drawBundledEdges(int i, int j, double x1, double y1,
-			double x2, double y2, Graphics2D g2, double[] k, double curveFactor) {
+			double x2, double y2, Graphics2D g2, double[][] k, double curveFactor) {
 
+		// get the attribute used to currently separate the nodes
 		Attribute sepAtt = spModel.getSeparationAttribute();
-		 int numClasses = sepAtt.numValues();
-//		int numClasses = spModel.getCurrentBundledAttribute().numValues();
+						
+		// c is the cluster the source node belongs to, d the cluster the target node belongs to
 		int c = (int) spModel.getInstances().instance(i).value(sepAtt);
 		int d = (int) spModel.getInstances().instance(j).value(sepAtt);
-
-		int arrayListPosition = d + (numClasses) * c;
-		k[arrayListPosition] = k[arrayListPosition] + 1;
-
-		ArrayList<Point2D> centroids = edgeModel.getCentroids();
-		ArrayList<PVector> vectors = edgeModel.getVectors();
 		
-		PVector direction = vectors.get(arrayListPosition);
+		// Add one to the number of edges drawn between those two clusters
+		k[c][d] = k[c][d] + 1.0;
+
+		// get the centroids and the clusters recorded in the edge model
+		ArrayList<Point2D> centroids = edgeModel.getCentroids();
+		PVector[][] vectors = edgeModel.getVectors();
+		
+		PVector direction = vectors[c][d];
 		direction.normalize();
 		PVector normal = new PVector(direction.y, -direction.x);
 
 		Point2D sourceCentroid = centroids.get(c);
 		Point2D targetCentroid = centroids.get(d);
 
-		double scx = sourceCentroid.getX() + k[arrayListPosition]
-				* (normal.x / curveFactor);
-		double scy = sourceCentroid.getY() - k[arrayListPosition]
-				* (normal.y / curveFactor);
+//		double scx = sourceCentroid.getX() + k[c][d]
+//				* (normal.x / curveFactor);
+//		double scy = sourceCentroid.getY() - k[c][d]
+//				* (normal.y / curveFactor);
+//
+//		double tcx = targetCentroid.getX() + k[c][d]
+//				* (normal.x / curveFactor);
+//		double tcy = targetCentroid.getY() - k[c][d]
+//				* (normal.y / curveFactor);
+		
+//		System.out.println(normal.x +  ", " + normal.y);
+		
+//		PVector p = new PVector((float)((k[c][d]-1) * normal.x), (float)((k[c][d]-1) * normal.y)); 
+//		PVector q = new PVector((float)(k[c][d] * normal.x),(float)((k[c][d] * normal.y)));
+//		
+//		
+//		System.out.println("dist " + p.dist(q) + "k: " + k[c][d]);
+		
+		
+		double scx = sourceCentroid.getX() - (k[c][d]
+				* normal.x / curveFactor);
+		double scy = sourceCentroid.getY() - (k[c][d]
+				* normal.y / curveFactor);
 
-		double tcx = targetCentroid.getX() + k[arrayListPosition]
-				* (normal.x / curveFactor);
-		double tcy = targetCentroid.getY() - k[arrayListPosition]
-				* (normal.y / curveFactor);
+		double tcx = targetCentroid.getX() - (k[c][d]
+				* normal.x / curveFactor);
+		double tcy = targetCentroid.getY() - (k[c][d]
+				* normal.y / curveFactor);
 
 		// //////////////////////////////////////////
 		// ----------------------------------------
@@ -404,11 +443,17 @@ public class Edge {
 		// //////////////////////////////////////////
 
 		if (c == d) {
-			drawBezierEdge(g2, x1, y1, x2, y2);
+			
+//			drawBezierEdge(g2, x1, y1, x2, y2);
+			Path2D.Double path = new Path2D.Double();
+			path.moveTo(x1, y1);
+			path.lineTo(x2, y2);
+			g2.draw(path);
+			
 		} else {
-			PVector p1 = new PVector((float) scx, (float) scy); // Source node
-																// to source
-																// centroid
+			
+			// Source node to source centroid
+			PVector p1 = new PVector((float) scx, (float) scy); 
 			p1.sub(new PVector((float) x1, (float) y1));
 			float lengthp1 = p1.mag();
 			p1.normalize();
@@ -433,10 +478,8 @@ public class Edge {
 
 			// /////////////////////////////////////////
 
-			PVector p2 = new PVector((float) tcx, (float) tcy); // first
-																// centroid to
-																// mid point of
-																// centroids
+			// source centroid to target centroids
+			PVector p2 = new PVector((float) tcx, (float) tcy); 
 			p2.sub(new PVector((float) scx, (float) scy));
 
 			float lengthp2 = p2.mag();
@@ -494,17 +537,104 @@ public class Edge {
 
 			Path2D.Double path = new Path2D.Double();
 			path.moveTo(x1, y1);
-			path.curveTo(c1p1.x, c1p1.y, c2p1.x, c2p1.y, scx, scy);
+//			path.curveTo(c1p1.x, c1p1.y, c2p1.x, c2p1.y, scx, scy);
+			path.lineTo(scx, scy);
 			path.curveTo(c1p2.x, c1p2.y, c2p2.x, c2p2.y, tcx, tcy);
-			path.curveTo(c1p4.x, c1p4.y, c2p4.x, c2p4.y, x2, y2);
+//			path.curveTo(c1p4.x, c1p4.y, c2p4.x, c2p4.y, x2, y2);
+			path.lineTo(x2, y2);
 			g2.draw(path);
 		}
 
 		// System.out.println("bundled edge draw");
 	}
+	
+	private void drawUndirectedBundledEdges(int i, int j, double x1, double y1,
+			double x2, double y2, Graphics2D g2, double[][] clusterEdgesDrawn, double curveFactor) {
+		
+				// get the attribute used to currently separate the nodes
+				Attribute sepAtt = spModel.getSeparationAttribute();
+				
+				// c is the cluster the source node belongs to, d the cluster the target node belongs to
+				int c = (int) spModel.getInstances().instance(i).value(sepAtt);
+				int d = (int) spModel.getInstances().instance(j).value(sepAtt);
+				
+				int s;
+				int t;
+				if (c <= d){
+					s = c;
+					t = d;
+				}
+				else {
+					s = d;
+					t = c;
+					
+					double g1 = x2;
+					double h1 = y2;
+					
+					x2 = x1;
+					y2 = y1;
+					
+					x1 = g1;
+					y1 = h1;
+					
+				}
+				
+				clusterEdgesDrawn[s][t]++;
+				
+				if (c == d) {
+//					drawBezierEdge(g2, x1, y1, x2, y2);
+					Path2D.Double path = new Path2D.Double();
+					path.moveTo(x1, y1);
+					path.lineTo(x2, y2);
+					g2.draw(path);
+				} else {
+						
+
+					// get the centroids and the clusters recorded in the edge model
+					ArrayList<Point2D> centroids = edgeModel.getCentroids();
+					PVector[][] vectors = edgeModel.getVectors();
+					
+					Point2D sourceCentroid = centroids.get(s);
+					Point2D targetCentroid = centroids.get(t);
+					
+					double k = clusterEdgesDrawn[s][t];
+					
+					if (Math.floor(k % 2) == 0) {
+						k = Math.floor(k/2);
+					} else {
+						k = -Math.floor(k/2);
+					}
+					
+					
+					
+					PVector direction = vectors[s][t];
+					direction.normalize();
+					PVector n = new PVector(direction.y, -direction.x);					
+	
+//					double scx = sourceCentroid.getX() + (k * n.x) /curveFactor;
+//					double scy = sourceCentroid.getY() + (k * n.y) /curveFactor;
+//	
+//					double tcx = targetCentroid.getX() + (k * n.x) /curveFactor;
+//					double tcy = targetCentroid.getY() + (k * n.y) /curveFactor;
+					
+					double scx = sourceCentroid.getX() + (k * n.x / curveFactor); 
+					double scy = sourceCentroid.getY() + (k * n.y / curveFactor);
+	
+					double tcx = targetCentroid.getX() + (k * n.x / curveFactor);
+					double tcy = targetCentroid.getY() + (k * n.y / curveFactor);
+				    
+					Path2D.Double path = new Path2D.Double();
+					path.moveTo(x1, y1);
+					path.lineTo(scx, scy);
+					path.lineTo(tcx, tcy);
+					path.lineTo(x2, y2);
+					g2.draw(path);
+				}
+			}
+
 
 	private void drawIntelligentBundledEdges(int i, int j, double x1,
-			double y1, double x2, double y2, Graphics2D g2, double[] k,
+			double y1, double x2, double y2, Graphics2D g2, double[][] k,
 			double curveFactor) {
 
 		// Four routes:
@@ -538,27 +668,26 @@ public class Edge {
 		int c = (int) spModel.getInstances().instance(i).value(sepAtt);
 		int d = (int) spModel.getInstances().instance(j).value(sepAtt);
 
-		int arrayListPosition = d + (numClasses) * c;
-		k[arrayListPosition] = k[arrayListPosition] + 1;
+		k[c][d]++;
 		
 		ArrayList<Point2D> centroids = edgeModel.getCentroids();
-		ArrayList<PVector> vectors = edgeModel.getVectors();
+		PVector[][] vectors = edgeModel.getVectors();
 
-		PVector direction = vectors.get(arrayListPosition);
+		PVector direction = vectors[c][d];
 		direction.normalize();
 		PVector normal = new PVector(direction.y, -direction.x);
 
 		Point2D sourceCentroid = centroids.get(c);
 		Point2D targetCentroid = centroids.get(d);
 
-		double scx = sourceCentroid.getX() + k[arrayListPosition]
+		double scx = sourceCentroid.getX() + k[c][d]
 				* (normal.x / curveFactor);
-		double scy = sourceCentroid.getY() - k[arrayListPosition]
+		double scy = sourceCentroid.getY() - k[c][d]
 				* (normal.y / curveFactor);
 
-		double tcx = targetCentroid.getX() + k[arrayListPosition]
+		double tcx = targetCentroid.getX() + k[c][d]
 				* (normal.x / curveFactor);
-		double tcy = targetCentroid.getY() - k[arrayListPosition]
+		double tcy = targetCentroid.getY() - k[c][d]
 				* (normal.y / curveFactor);
 
 		// For options 1 and 2 p1 will always be the vector from the source node
@@ -608,9 +737,9 @@ public class Edge {
 		c2p2.add(new PVector((float) tcx, (float) tcy));
 		c2p2.add(n2);
 
-		ArrayList<PVector> bezierMidPoints = edgeModel.getBezierMidPoints();
-		float mpx = bezierMidPoints .get(arrayListPosition).x;
-		float mpy = bezierMidPoints.get(arrayListPosition).y;
+		PVector[][] bezierMidPoints = edgeModel.getBezierMidPoints();
+		float mpx = bezierMidPoints[c][d].x;
+		float mpy = bezierMidPoints[c][d].y;
 
 		double bmpx = (0.125 * (scx + tcx)) + (0.375 * (c1p2.x + c2p2.x));
 		double bmpy = (0.125 * (scy + tcy)) + (0.375 * (c1p2.y + c2p2.y));

@@ -19,8 +19,9 @@ public class EdgeModel {
 	private Graph graph;
 	
 	// An array which holds the number of edges already drawn between each cluster
-	private double[] clusterEdgesDrawn; 
-	private double curveFactor;
+	private double[][] clusterEdgesDrawn; 
+	private double bundleControl = 1;
+	private double bundleSpacing;
 	
 	private int lowEdgeWeightValue;
 	private int upperEdgeWeightRange;
@@ -40,15 +41,14 @@ public class EdgeModel {
 	private boolean bundledEdges;
 	private boolean fannedEdges;
 	private boolean intelligentEdges;
-	private boolean arrowedEdges;
+	private boolean directed;
 	private boolean filterAllEdges;
 	private boolean filterEdgesByWeight;
 	private boolean viewEdgeWeights;
 	
 	private ArrayList<Point2D> centroids;
-	private ArrayList<Float> magnitudes;
-	private ArrayList<PVector> vectors;
-	private ArrayList<PVector> midPoints;
+	private PVector[][] vectors;
+	private PVector[][] midPoints;
 	private double[] centroidRadii;
 	
 	public EdgeModel(ScatterPlotModel spModel) {
@@ -57,22 +57,27 @@ public class EdgeModel {
 	
 	public void initialise() {
 		clusterEdgesDrawn = null;
-		curveFactor = 1.0;
 		
 		if (bundledEdges() || intelligentEdges()) {
+			System.out.println("bundled,intelligent edges selected");
 			calculateCentroids();
-			calculateMagnitudesandVectors();
+			calculateVectors();
 
 			centroids = getCentroids();
 			vectors = getVectors();
 
-			clusterEdgesDrawn = new double[(int) Math.pow(centroids.size(), 2)];
-			for (double d : clusterEdgesDrawn) {
-				d = 0.0; // initialise entries in the array.
+							
+			clusterEdgesDrawn = new double[centroids.size()][centroids.size()];
+			for (int p = 0; p < centroids.size(); p++) {
+				for (int q = 0; q < centroids.size(); q++) {
+					clusterEdgesDrawn[p][q] = 0.0;
+//					System.out.println(p + ", " + q + ", " + clusterEdgesDrawn[p][q]);
+				}
 			}
 			
-			curveFactor = (spModel.getGraph().getAllConnections().size() / spModel.instances
-					.numInstances()) * 100;
+			bundleSpacing = (spModel.getGraph().getAllConnections().size()/centroids.size())/getBundleControl();
+			
+			System.out.println("Offset: " + bundleSpacing);
 
 			if (intelligentEdges()) {
 				calculateCentroidRadius();
@@ -83,11 +88,20 @@ public class EdgeModel {
 		}
 	}
 	
-	public double getCurveFactor(){
-		return curveFactor;
+	public void setBundleControl(double bt) {
+		bundleControl = bt;
+		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
 	}
 	
-	public double[] getClusterEdgesDrawn(){
+	public double getBundleControl(){
+		return bundleControl;
+	}
+	
+	public double getBundleSpacing(){
+		return bundleSpacing;
+	}
+	
+	public double[][] getClusterEdgesDrawn(){
 		return clusterEdgesDrawn;
 	}
 	
@@ -213,13 +227,13 @@ public class EdgeModel {
 	}
 
 	/** Whether to add an arrow to each edge to indicate direction */
-	public void setArrowedEdges(boolean b) {
-		arrowedEdges = b;
+	public void setDirected(boolean b) {
+		directed = b;
 		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
 	}
 
-	public boolean arrowedEdges() {
-		return arrowedEdges;
+	public boolean directed() {
+		return directed;
 	}
 
 	/** Filter all edges from view until nodes are selected */
@@ -303,6 +317,7 @@ public class EdgeModel {
 			String classValue;
 			while (classValues.hasMoreElements()) {
 				classValue = (String) classValues.nextElement();
+//				System.out.println(classValue);
 				int k = 0;
 				double xcoordsum = 0;
 				double ycoordsum = 0;
@@ -320,33 +335,31 @@ public class EdgeModel {
 		}
 	}
 	
-	public void calculateMagnitudesandVectors() {
-		magnitudes = new ArrayList<Float>();
-		vectors = new ArrayList<PVector>();
-		for (int i = 0; i < centroids.size(); i++) {
-			for (int j = 0; j < centroids.size(); j++) {
+	/**
+	 * Calculate the vectors in between each pair of clusters
+	 */
+	public void calculateVectors() {
+		int cs = centroids.size();
+		vectors = new PVector[cs][cs];
+		for (int i = 0; i < cs; i++) {
+			for (int j = 0; j < cs; j++) {
 				PVector p = new PVector((float) centroids.get(i).getX(),
 						(float) centroids.get(i).getY());
 				p.sub(new PVector((float) centroids.get(j).getX(),
 						(float) centroids.get(j).getY()));
 				// p.mult(0.75f);
-				float length = p.mag();
-				magnitudes.add(length);
 				p.normalize();
-				vectors.add(p);
+				vectors[i][j] = p;
 			}
 		}
 	}
 
-	public ArrayList<Float> getMagnitudes() {
-		return magnitudes;
-	}
-	
+
 	public ArrayList<Point2D> getCentroids() {
 		return centroids;
 	}
 	
-	public ArrayList<PVector> getVectors() {
+	public PVector[][] getVectors() {
 		return vectors;
 	}
 	
@@ -387,9 +400,10 @@ public class EdgeModel {
 	}
 	
 	public void calculateBezierCentroidMidPoints() {
-		midPoints = new ArrayList<PVector>();
-		for (int i = 0; i < centroids.size(); i++) {
-			for (int j = 0; j < centroids.size(); j++) {
+		int cs = centroids.size();
+		midPoints = new PVector[cs][cs];
+		for (int i = 0; i < cs; i++) {
+			for (int j = 0; j < cs; j++) {
 
 				Point2D sourceCentroid = centroids.get(i);
 				Point2D targetCentroid = centroids.get(j);
@@ -427,14 +441,14 @@ public class EdgeModel {
 				double bmpx = (0.125 * (scx + tcx)) + (0.375 * (c1p2.x + c2p2.x));
 				double bmpy = (0.125 * (scy + tcy)) + (0.375 * (c1p2.y + c2p2.y));
 				 
-				midPoints.add(new PVector((float)bmpx, (float)bmpy));
+				midPoints[i][j] = new PVector((float)bmpx, (float)bmpy);
 				
 			}
 		}
 				
 	}
 	
-	public ArrayList<PVector> getBezierMidPoints() {
+	public PVector[][] getBezierMidPoints() {
 		return midPoints;
 	}
 }

@@ -170,12 +170,12 @@ public class SelectButton extends JButton implements ActionListener, MouseListen
 
 		// find which attribute to use to select points by
 		// and select all the points according to the button value
-		if (pointModel.getSelectAttribute().isNominal()) {
+		if (spModel.getPointModel().getSelectAttribute().isNominal()) {
 			String value = ((SelectButton) event.getSource()).getValue();
 			spModel.selectPointsByClassValue(value, addToExistingSelection);
 		}
 
-		if (pointModel.getSelectAttribute().isNumeric()) {
+		if (spModel.getPointModel().getSelectAttribute().isNumeric()) {
 			double min = ((SelectButton) event.getSource()).getMin();
 			double max = ((SelectButton) event.getSource()).getMax();
 			spModel.selectPointsByNumericRange(min, max, addToExistingSelection);

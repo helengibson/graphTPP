@@ -48,6 +48,9 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 	private JLabel edgeShapeLabel;
 	private JComboBox<String> edgeShapeCombo;
 	private String[] edgeShapeOptions = {"Straight", "Curved", "Bundled", "Fanned", "Intelligent", "Hidden"};
+	
+	private JLabel bundleThicknessLabel;
+	private JSlider bundleThicknessSlider;
 
 	private JCheckBox incomingCB;
 	private JCheckBox outgoingCB;
@@ -153,7 +156,7 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 
 		directedCheckBox = new JCheckBox("Show Arrows");
 		directedCheckBox.setEnabled(false);
-		directedCheckBox.setSelected(edgeModel.arrowedEdges());
+		directedCheckBox.setSelected(edgeModel.directed());
 
 		filterEdgeCheckBox = new JCheckBox("Filter Edges");
 		filterEdgeCheckBox.setEnabled(false);
@@ -197,7 +200,7 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 
 		panel.add(loadGraphPanel, grid);
 	}
-
+	
 	private void addDrawEdgeOptions(JPanel viewOptionsPanel,
 			GridBagConstraints viewOptionsGrid) {
 
@@ -224,6 +227,12 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		edgeShapeCombo = new JComboBox<>(edgeShapeOptions);
 		edgeShapeCombo.setEnabled(false);
 		edgeShapeCombo.addActionListener(this);
+		
+		bundleThicknessLabel = new JLabel("Bundle", JLabel.RIGHT);
+		bundleThicknessSlider = new JSlider(1, 10, (int)edgeModel.getBundleControl());
+		bundleThicknessSlider.setEnabled(false);
+		bundleThicknessSlider.setValue((int) (edgeModel.getBundleControl()));
+		bundleThicknessSlider.addChangeListener(this);
 
 		edgeGrid.gridx = 0;
 		edgeGrid.gridwidth = 1;
@@ -244,6 +253,16 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		edgeGrid.gridwidth = 1;
 
 		edgePanel.add(edgeShapeCombo, edgeGrid);
+		
+		edgeGrid.gridx = 4;
+		edgeGrid.gridwidth = 1;
+		
+		edgePanel.add(bundleThicknessLabel, edgeGrid);
+		
+		edgeGrid.gridx = 5;
+		edgeGrid.gridwidth = 1;
+		
+		edgePanel.add(bundleThicknessSlider, edgeGrid);
 
 		viewOptionsGrid.gridx = 0;
 		viewOptionsGrid.gridy++;
@@ -315,47 +334,6 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		addEdgeFilter(edgeDirectionPanel, edgeDirectionGrid);
 
 		panel.add(edgeDirectionPanel, grid);
-
-	}
-
-	private void addSliders(JPanel viewOptionsPanel,
-			GridBagConstraints viewOptionsGrid) {
-
-		JPanel sliderPanel = new JPanel();
-		sliderPanel.setLayout(new GridBagLayout());
-		GridBagConstraints sliderGrid = new GridBagConstraints();
-
-		sliderGrid.fill = GridBagConstraints.BOTH;
-		sliderGrid.weightx = 1.0;
-		sliderGrid.gridy = 0;
-		sliderGrid.insets = new Insets(0, 0, 0, 0);
-
-		TitledBorder border = BorderFactory.createTitledBorder(raisedetched,
-				"Select transparency and node size:");
-		sliderPanel.setBorder(border);
-
-		JLabel transparencyLabel = new JLabel("Transparency: ", JLabel.LEFT);
-
-		sliderGrid.gridy = 0;
-		sliderGrid.gridx = 0;
-		sliderGrid.gridwidth = 1;
-
-		sliderPanel.add(transparencyLabel, sliderGrid);
-
-		transparencySlider = new JSlider(0, 255, spModel.getTransparencyLevel());
-		transparencySlider.setEnabled(false);
-		transparencySlider.setValue((int) (spModel.getTransparencyLevel()));
-		transparencySlider.addChangeListener(this);
-		transparencySlider
-				.setToolTipText("Change the amount of transparency for the non-highlighted point and edges");
-
-		sliderGrid.gridx = 1;
-		sliderGrid.gridwidth = 2;
-		sliderPanel.add(transparencySlider, sliderGrid);
-
-		addGraphSizeSelector(sliderPanel, sliderGrid);
-
-		viewOptionsPanel.add(sliderPanel, viewOptionsGrid);
 
 	}
 
@@ -603,6 +581,7 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		edgeWeightsCheckBox.setEnabled(true);
 		edgeColorCombo.setEnabled(true);
 		edgeShapeCombo.setEnabled(true);
+		bundleThicknessSlider.setEnabled(true);
 		incomingCB.setEnabled(true);
 		outgoingCB.setEnabled(true);
 		transparencySlider.setEnabled(true);
@@ -650,7 +629,7 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		}
 
 		if (event.getSource() == directedCheckBox) {
-			edgeModel.setArrowedEdges(directedCheckBox.isSelected());
+			edgeModel.setDirected(directedCheckBox.isSelected());
 		}
 
 		if (event.getSource() == edgeWeightsCheckBox) {
@@ -732,7 +711,6 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 				rangeSliderUpperValue.setText(String.valueOf(rangeSlider.getUpperValue()));
 			}
 		}
-
 	}
 
 	@Override
@@ -774,6 +752,9 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 
 		if (labelSlider == (JSlider) e.getSource())
 			pointModel.setLabelSize(labelSlider.getValue() / 100d);
+		
+		if (bundleThicknessSlider == (JSlider) e.getSource())
+			edgeModel.setBundleControl(bundleThicknessSlider.getValue());
 	}
 
 }

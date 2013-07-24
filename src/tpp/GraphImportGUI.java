@@ -33,11 +33,7 @@ public class GraphImportGUI extends JFrame implements ActionListener {
 	private JRadioButton spaceRadio;
 	private JRadioButton tabRadio;
 	private JRadioButton barRadio;
-	
-	private ButtonGroup directionGroup;
-	private JRadioButton undirectedRadio;
-	private JRadioButton directedRadio;
-	
+		
 	private JButton OKButton;
 	private JButton cancelButton;
 
@@ -68,7 +64,6 @@ public class GraphImportGUI extends JFrame implements ActionListener {
 		JLabel attributeLabel = new JLabel("Choose the attribute that uniquely identifies the node:");
 		JLabel fileChooserLabel = new JLabel("Choose the location of the edgelist file:");
 		JLabel delimiterLabel = new JLabel("Choose the delimiter used in the file:");
-		JLabel directedLabel = new JLabel("Is the graph undirected or directed?");
 		
 		nodeSelector = new JComboBox(nodeIds);
 		fileLocation = new JTextField();
@@ -88,14 +83,7 @@ public class GraphImportGUI extends JFrame implements ActionListener {
 		delimiterGroup.add(tabRadio);
 		delimiterGroup.add(spaceRadio);
 		delimiterGroup.add(barRadio);
-				
-		undirectedRadio =  new JRadioButton("undirected", true);
-		directedRadio = new JRadioButton("directed");
-		
-		directionGroup = new ButtonGroup();
-		directionGroup.add(undirectedRadio);
-		directionGroup.add(directedRadio);
-		
+						
 		OKButton = new JButton("OK");
 		cancelButton = new JButton("cancel");
 		
@@ -141,16 +129,7 @@ public class GraphImportGUI extends JFrame implements ActionListener {
 		add(spaceRadio, grid);
 		grid.gridwidth = GridBagConstraints.REMAINDER;
 		add(barRadio, grid);
-		
-		grid.weightx = 0.0;
-		add(directedLabel, grid);
-		
-		grid.weightx = 1.0;
-		grid.gridwidth = 1;
-		add(undirectedRadio, grid);
-		grid.gridwidth = GridBagConstraints.REMAINDER;
-		add(directedRadio, grid);
-		
+				
 		grid.anchor = GridBagConstraints.SOUTHEAST;
 		grid.weightx = 1.0;
 		grid.gridwidth = 1;
