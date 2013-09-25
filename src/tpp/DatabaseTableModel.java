@@ -2,12 +2,9 @@ package tpp;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 
-import javax.swing.JTable;
 import javax.swing.event.TableModelListener;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
 public class DatabaseTableModel implements TableModel {

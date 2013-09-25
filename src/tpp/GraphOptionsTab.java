@@ -747,9 +747,6 @@ public class GraphOptionsTab extends JPanel implements ActionListener,
 		if (transparencySlider == (JSlider) e.getSource())
 			spModel.setTransparencyLevel(transparencySlider.getValue());
 
-		// if (beizerSlider == (JSlider) e.getSource())
-		// spModel.setBeizerCurviness((float)beizerSlider.getValue()/100f);
-
 		if (labelSlider == (JSlider) e.getSource())
 			pointModel.setLabelSize(labelSlider.getValue() / 100d);
 		

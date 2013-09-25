@@ -43,10 +43,11 @@ public class GraphModel {
 				cnxn = allConnections.next();
 				if(cnxn.getSourceInstance()== currentNode)
 					currentDegree++;
+				
 				if(cnxn.getTargetInstance() == currentNode)
 					currentDegree++;
+				
 			} 
-			System.out.println(i + " : "+ currentDegree);
 			nodeDegree[i] = currentDegree;
 		}
 		return nodeDegree;	

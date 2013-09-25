@@ -14,9 +14,7 @@ import weka.core.Attribute;
 public class AttributeCombo extends JComboBox {
 
 	public static final int NUMERIC_ATTRIBUTES = 0;
-
 	public static final int NOMINAL_ATTRIBUTES = 1;
-
 	public static final int ALL_ATTRIBUTES = 2;
 
 	private Vector<Attribute> attributes;
@@ -44,8 +42,10 @@ public class AttributeCombo extends JComboBox {
 		Vector<Attribute> ats = new Vector<Attribute>();
 		if (addNull)
 			ats.add(null);
+		
 		if (type == NUMERIC_ATTRIBUTES || type == ALL_ATTRIBUTES)
 			ats.addAll(tpp.getNumericAttributes());
+		
 		if (type == NOMINAL_ATTRIBUTES || type == ALL_ATTRIBUTES)
 			ats.addAll(tpp.getNominalAttributes());
 

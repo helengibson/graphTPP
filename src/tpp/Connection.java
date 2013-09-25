@@ -6,17 +6,13 @@ import weka.core.Instances;
 public class Connection {
 	
 	private String sourceNode;
-	
 	private String targetNode;
 	
 	private Instance nodeInstance;
-	
 	private Instance sourceInstance;
-	
 	private Instance targetInstance;
 	
 	private int sourceIndex;
-	
 	private int targetIndex;
 
 	private Double weight;
@@ -29,6 +25,7 @@ public class Connection {
 	 * @param targetNode
 	 */
 	public Connection(Instances ins, int index, String sourceNode, String targetNode, Double weight) {
+		
 		this.sourceNode = sourceNode;
 		this.targetNode = targetNode;
 				
@@ -89,9 +86,8 @@ public class Connection {
 	private int indexOf(Instances ins, Instance in) {
 		for (int i = 0; i < ins.numInstances(); i++)
 			if (ins.instance(i).equals(in)){
-				// System.out.println(instances.instance(i));
-				// System.out.println(in);
-				return i;}
+				return i;
+				}
 		return -1;
 	}
 }

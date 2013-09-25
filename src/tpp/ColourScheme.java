@@ -51,7 +51,6 @@ public class ColourScheme implements Serializable {
 		// maximum values on the ordered range
 		this.minColor = minColor;
 		this.midColor = midColor;
-		System.out.println("mid colour is " + midColor.toString());
 		this.maxColor = maxColor;
 		this.description = description;
 		initSpectrum();
@@ -132,14 +131,14 @@ public class ColourScheme implements Serializable {
 	public Color getColorFromSpectrum(double c, double lowerBound, double upperBound) {
 		if (c > upperBound - MARGIN)
 			return spectrumColors[2 * INTERVALS];
+		
 		if (c < lowerBound + MARGIN)
 			return spectrumColors[0];
+		
 		int i;
 		double step = (upperBound - lowerBound) / (2f * INTERVALSf + 1);
 		i = (int) Math.floor((c - lowerBound) / step);
-		// System.out.println(c + " in [" + lowerBound + "," + upperBound +
-		// "] = "
-		// + i);
+
 		return spectrumColors[i];
 	}
 
@@ -197,6 +196,11 @@ public class ColourScheme implements Serializable {
 	private static Color[] accent = {new Color(127,201,127), new Color(190,174,212), new Color(253,192,134), new Color(255,255,153), new Color(56,108,176), new Color(240,2,127), new Color(191,91,23), new Color(102,102,102)};
 	private static Color[] paired = {new Color(166,206,227), new Color(31,120,180), new Color(178,223,138), new Color(51,160,44), new Color(251,154,153), new Color(227,26,28), new Color(253,191,111), new Color(255,127,0), new Color(202,178,214), new Color(106,61,154), new Color(255,255,153), new Color(177,89,40)};
 	
+	private static Color[] custom = null;
+	public static void setCustomColor(Color[] classColor) {
+		custom = classColor;
+	}
+	
 	public static Color[] getSet1() {
 		return set1;
 	}
@@ -227,6 +231,10 @@ public class ColourScheme implements Serializable {
 	
 	public static Color[] getPaired() {
 		return paired;
+	}
+	
+	public static Color[] getCustom() {
+		return custom;
 	}
 	
 	// Diverging Colour schemes from Cynthia Brewer at ColorBrewer2.org
@@ -330,14 +338,11 @@ public class ColourScheme implements Serializable {
 		int bMin = GnBu[2].getBlue();
 		int bMid = GnBu[1].getBlue();
 		int bMax = GnBu[0].getBlue();
-		
-		System.out.println("Min, Mid and Max values calculated");
-		
+				
 		Color[] newGnBu = new Color[classes];
 		
 		if (classes % 2 == 0){
 			
-			int halfway = (int)Math.floor((double)classes/2) + 1;
 			float classesf = classes * 1f;
 			
 			for (int c = 0; c < classes; c++) {
@@ -345,14 +350,9 @@ public class ColourScheme implements Serializable {
 				int red = Math.round(rMax - (c / classesf) * (rMax - rMin));
 				int green = Math.round(gMax - (c / classesf) * (gMax - gMin));
 				int blue = Math.round(bMax - (c / classesf) * (bMax - bMin));
-						
-				System.out.println("red: "+ red + ", green: " + green + " , blue: " + blue); 
 				
 				newGnBu[c] = new Color(Math.max(red, 0), Math.max(green, 0), Math.max(blue, 0));
 				
-//				GnBu[c] = new Color(Math.round(rMin + (c / lowClassesf) * (rMax - rMin)),
-//						Math.round(gMin + (c / lowClassesf) * (gMax - gMin)), Math.round(bMin + (c / lowClassesf)
-//								* (bMax - bMin)));
 			}
 			
 		} else {
@@ -367,8 +367,6 @@ public class ColourScheme implements Serializable {
 				int greenPos = Math.round(gMid + (c / lowClassesf) * (gMax - gMid));
 				int bluePos = Math.round(bMid + (c / lowClassesf)* (bMax - bMid));
 						
-				System.out.println(c +":: redpos: "+ redPos + ", green: " + greenPos + " , blue: " + bluePos); 
-
 				// the positive colors
 				newGnBu[lowClasses + c] = new Color(Math.round(rMid + (c / lowClassesf) * (rMax - rMid)),
 						Math.round(gMid + (c / lowClassesf) * (gMax - gMid)), Math.round(bMid + (c / lowClassesf)

@@ -648,7 +648,7 @@ public class ScatterPlotViewPanel extends JPanel implements
 	 * @param g2
 	 */
 	private void drawClusterArc(HierarchicalCluster cluster, Graphics2D g2) {
-
+		
 		// if this cluster just contains another cluster then draw that
 		if (cluster.size() == 1
 				&& cluster.get(0) instanceof HierarchicalCluster)

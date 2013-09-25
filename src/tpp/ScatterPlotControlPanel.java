@@ -129,9 +129,7 @@ public class ScatterPlotControlPanel extends JPanel implements
 		add(splitter, BorderLayout.CENTER);
 
 		splitter.setOneTouchExpandable(true);
-//		splitter.setDividerLocation(300);
 		splitter.setResizeWeight(0.8);
-//		splitter.setDividerLocation(splitter.getSize().height - 250);
 
 		// Provide a preferred size for the split pane.
 		splitter.setPreferredSize(new Dimension(200, 100));
@@ -311,6 +309,10 @@ public class ScatterPlotControlPanel extends JPanel implements
 
 		topSSPanel.add(selectSeparatePanel, BorderLayout.PAGE_START);
 
+	}
+	
+	public SelectionPanel getSelectionPanel(){
+		return selectionPanel;
 	}
 
 	private void addClustererButton(JPanel panel, GridBagConstraints grid) {

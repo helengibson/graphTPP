@@ -405,25 +405,6 @@ public class Edge {
 
 		Point2D sourceCentroid = centroids.get(c);
 		Point2D targetCentroid = centroids.get(d);
-
-//		double scx = sourceCentroid.getX() + k[c][d]
-//				* (normal.x / curveFactor);
-//		double scy = sourceCentroid.getY() - k[c][d]
-//				* (normal.y / curveFactor);
-//
-//		double tcx = targetCentroid.getX() + k[c][d]
-//				* (normal.x / curveFactor);
-//		double tcy = targetCentroid.getY() - k[c][d]
-//				* (normal.y / curveFactor);
-		
-//		System.out.println(normal.x +  ", " + normal.y);
-		
-//		PVector p = new PVector((float)((k[c][d]-1) * normal.x), (float)((k[c][d]-1) * normal.y)); 
-//		PVector q = new PVector((float)(k[c][d] * normal.x),(float)((k[c][d] * normal.y)));
-//		
-//		
-//		System.out.println("dist " + p.dist(q) + "k: " + k[c][d]);
-		
 		
 		double scx = sourceCentroid.getX() - (k[c][d]
 				* normal.x / curveFactor);
@@ -610,12 +591,6 @@ public class Edge {
 					PVector direction = vectors[s][t];
 					direction.normalize();
 					PVector n = new PVector(direction.y, -direction.x);					
-	
-//					double scx = sourceCentroid.getX() + (k * n.x) /curveFactor;
-//					double scy = sourceCentroid.getY() + (k * n.y) /curveFactor;
-//	
-//					double tcx = targetCentroid.getX() + (k * n.x) /curveFactor;
-//					double tcy = targetCentroid.getY() + (k * n.y) /curveFactor;
 					
 					double scx = sourceCentroid.getX() + (k * n.x / curveFactor); 
 					double scy = sourceCentroid.getY() + (k * n.y / curveFactor);
@@ -624,10 +599,12 @@ public class Edge {
 					double tcy = targetCentroid.getY() + (k * n.y / curveFactor);
 				    
 					Path2D.Double path = new Path2D.Double();
+					
 					path.moveTo(x1, y1);
 					path.lineTo(scx, scy);
 					path.lineTo(tcx, tcy);
 					path.lineTo(x2, y2);
+					
 					g2.draw(path);
 				}
 			}

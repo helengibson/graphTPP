@@ -1,49 +1,21 @@
 package tpp;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
 import java.awt.Toolkit;
-import java.awt.color.ColorSpace;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.sql.SQLException;
 
-import javax.imageio.ImageIO;
-import javax.swing.JEditorPane;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
-
-import org.apache.batik.dom.GenericDOMImplementation;
-import org.apache.batik.svggen.SVGGraphics2D;
-import org.apache.commons.io.IOUtils;
-import org.apache.xmlgraphics.java2d.ps.EPSDocumentGraphics2D;
-import org.w3c.dom.DOMImplementation;
-import org.w3c.dom.Document;
 
 import weka.core.Instances;
 
@@ -78,7 +50,7 @@ public class TPPFrame extends JFrame implements ActionListener {
 	private JMenuItem saveProjectionMenuItem = null;
 	private JMenuItem saveViewDataMenuItem = null;
 	private JMenuItem saveSVGMenuItem, saveEPSMenuItem, savePNGMenuItem;
-	
+
 	private JMenuItem pcaViewMenuItem = null;
 	private JMenuItem randomViewMenuItem = null;
 	private JRadioButtonMenuItem showAxesMenuItem = null;
@@ -87,11 +59,11 @@ public class TPPFrame extends JFrame implements ActionListener {
 	private JMenuItem addNoiseMenuItem;
 	private JMenuItem showDataViewerMenuItem;
 	private DataViewer dataViewer;
-	
+
 	private JMenu DBItem;
 	private JMenuItem DBConnectionItem;
 	private JMenuItem DBSelectionItem;
-	
+
 	private JMenuItem helpMenuItem;
 
 	ScatterPlotViewPanel viewPanel;
@@ -99,12 +71,6 @@ public class TPPFrame extends JFrame implements ActionListener {
 
 	public TPPFrame() {
 		super(FRAME_TITLE);
-		// LicenseChecker license = new LicenseChecker();
-		// boolean licensed = license.retrieveAndCheckLicense(this);
-		// System.out.println(license.getStatusMessage());
-		// if (!licensed)
-		// return;
-		// license = null;
 		try {
 			UIManager
 					.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
@@ -152,7 +118,7 @@ public class TPPFrame extends JFrame implements ActionListener {
 		}
 		return helpMenuItem;
 
-	}	
+	}
 
 	/**
 	 * This method initializes fileMenu
@@ -191,7 +157,7 @@ public class TPPFrame extends JFrame implements ActionListener {
 		}
 		return openARFFFileMenuItem;
 	}
-	
+
 	private JMenuItem getOpenGraphARFFFileMenuItem() {
 		if (openGraphARFFFileMenuItem == null) {
 			openGraphARFFFileMenuItem = new JMenuItem();
@@ -317,7 +283,7 @@ public class TPPFrame extends JFrame implements ActionListener {
 		}
 		return saveEPSMenuItem;
 	}
-	
+
 	/**
 	 * This method initializes savePNGMenuItem
 	 * 
@@ -428,36 +394,34 @@ public class TPPFrame extends JFrame implements ActionListener {
 	private JMenuItem getRescaleMenuItem() {
 		if (rescaleMenuItem == null) {
 			rescaleMenuItem = new JMenuItem();
-			rescaleMenuItem.setText("Fit points to window (Shift + right button)");
+			rescaleMenuItem
+					.setText("Fit points to window (Shift + right button)");
 			rescaleMenuItem.setEnabled(false);
 			rescaleMenuItem.addActionListener(this);
 		}
 		return rescaleMenuItem;
 	}
-	
+
 	private JMenu getDBMenuItems() {
 		if (DBItem == null) {
 			DBItem = new JMenu();
 			DBItem.setText("Database Actions");
 			DBItem.setEnabled(false);
-			
+
 			DBConnectionItem = new JMenuItem();
 			DBConnectionItem.setText("Database connection");
 			DBConnectionItem.addActionListener(this);
-			
+
 			DBSelectionItem = new JMenuItem();
 			DBSelectionItem.setText("View in database");
 			DBSelectionItem.addActionListener(this);
-			
+
 			DBItem.add(DBConnectionItem);
 			DBItem.add(DBSelectionItem);
 		}
 		return DBItem;
 	}
-	
 
-
-	
 	/** Enable those menu items that rely on a data file being currently loaded. */
 	private void enableViewMenuItems() {
 		getSaveNormalisedViewMenuItem().setEnabled(true);
@@ -479,7 +443,7 @@ public class TPPFrame extends JFrame implements ActionListener {
 		getAddNoiseMenuItem().setEnabled(true);
 		getAddNoiseMenuItem().setSelected(false);
 		getDBMenuItems().setEnabled(true);
-		
+
 	}
 
 	/**
@@ -505,79 +469,86 @@ public class TPPFrame extends JFrame implements ActionListener {
 
 	public void actionPerformed(ActionEvent action) {
 		try {
+			
 			if (action.getSource() == getOpenARFFFileMenuItem())
 				setData(new ARFFImporter().importData());
+			
 			if (action.getSource() == getOpenGraphARFFFileMenuItem())
-//				setData(new GraphARFFImporter().importData());
 				new GraphARFFImporterGUI(this);
+			
 			if (action.getSource() == getOpenCSVFileMenuItem())
 				setData(new CSVDataImporter().importData());
+			
 		} catch (Exception e) {
+			
 			System.out.println(e);
+			
 		}
-		if (action.getSource()==getHelpMenuItem())
-			browseHelp();
 		
+		if (action.getSource() == getHelpMenuItem())
+			browseHelp();
+
 		if (action.getSource() == getSaveNormalisedViewMenuItem())
 			Exporter.saveNormalisedData(model, null);
-		
+
 		if (action.getSource() == getSaveProjectionMenuItem())
 			Exporter.saveCurrentProjection(model, null);
-		
+
 		if (action.getSource() == getSaveViewDataMenuItem())
 			Exporter.saveCurrentViewDataAsTSV(model, null);
-		
+
 		if (action.getSource() == getSaveSVGMenuItem())
 			Exporter.saveViewAsSVGImage(viewPanel.canvas, model, null);
-		
+
 		if (action.getSource() == getSaveEPSMenuItem())
 			Exporter.saveViewAsEPSImage(viewPanel.canvas, model, null);
-		
+
 		if (action.getSource() == getSavePNGMenuItem())
 			Exporter.saveViewAsPNGImage(viewPanel.canvas, model, null);
-		
+
 		if (action.getSource() == getRescaleMenuItem())
 			model.resizePlot();
-		
+
 		if (action.getSource() == getPCAMenuItem())
 			model.PCA();
-		
+
 		if (action.getSource() == getRandomMenuItem())
 			model.randomProjection();
-		
+
 		if (action.getSource() == getShowAxesMenuItem())
 			model.setShowAxes(getShowAxesMenuItem().isSelected());
-		
-		if (action.getSource() == getShowHierarchicalClusteringMenuItem())
+
+		if (action.getSource() == getShowHierarchicalClusteringMenuItem()) {
+			model.createHierarchicalClustering();
 			model.setShowHierarchicalClustering(getShowHierarchicalClusteringMenuItem()
 					.isSelected());
-		
+		}
+
 		if (action.getSource() == getShowTargetMenuItem())
 			model.setShowTarget(getShowTargetMenuItem().isSelected());
-		
+
 		if (action.getSource() == getAddNoiseMenuItem())
 			viewPanel.addNoise(getAddNoiseMenuItem().isSelected());
-		
+
 		if (action.getSource() == getShowDataViewerMenuItem())
 			showDataViewer(getShowDataViewerMenuItem().isEnabled());
-		
-		if(action.getSource() == DBConnectionItem) 
+
+		if (action.getSource() == DBConnectionItem)
 			new DBConnectionGUI(this);
-		
-		if(action.getSource() == DBSelectionItem) {
+
+		if (action.getSource() == DBSelectionItem) {
 			try {
 				model.runQuery();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}	
+			}
 		}
 	}
-	
-	public void addDatabaseConnection(String username, String password, 
+
+	public void addDatabaseConnection(String username, String password,
 			String database, String table) {
-				model.addDatabaseConnection(username, password, 
-			database, table);
+		model.addDatabaseConnection(username, password, database, table);
 	}
 
 	private static void browseHelp() {
@@ -592,6 +563,7 @@ public class TPPFrame extends JFrame implements ActionListener {
 			// TODO: error handling
 		}
 	}
+
 	private void showDataViewer(boolean show) {
 		if (show) {
 			dataViewer = new DataViewer(model);
@@ -606,7 +578,7 @@ public class TPPFrame extends JFrame implements ActionListener {
 
 	/** Set the model that this window is used to visualise */
 	void setData(Instances in) {
-		if (in != null){
+		if (in != null) {
 			try {
 				model = new ScatterPlotModel(2);
 				model.setInstances(in, false);
@@ -622,7 +594,7 @@ public class TPPFrame extends JFrame implements ActionListener {
 				setContentPane(split);
 				setVisible(true);
 				split.setDividerLocation(split.getSize().width - 350);
-				Dimension minimumSize = new Dimension(0, 0);			
+				Dimension minimumSize = new Dimension(0, 0);
 				viewPanel.setMinimumSize(minimumSize);
 				controlPanel.setMinimumSize(minimumSize);
 				viewPanel.setModel(model);
@@ -631,7 +603,7 @@ public class TPPFrame extends JFrame implements ActionListener {
 				viewPanel.canvas.addMouseListener(l);
 				viewPanel.canvas.addMouseMotionListener(l);
 				viewPanel.repaint();
-				
+
 			} catch (Exception e) {
 				e.printStackTrace();
 				JOptionPane.showMessageDialog(this,

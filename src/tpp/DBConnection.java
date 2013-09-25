@@ -39,8 +39,7 @@ public class DBConnection {
 
 	
 	private void setConnection() throws SQLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
-		System.out.println("Trying to set connection");
-	    //com.mysql.jdbc.Connection conn = null;
+		
 	    Properties connectionProps = new Properties();
 	    connectionProps.put("user", this.userName);
 	    connectionProps.put("password", this.password);
@@ -54,13 +53,10 @@ public class DBConnection {
 	                   dbName,
 	                   connectionProps);
 	    } 
-	    System.out.println("Connected to database");
-	    System.out.println(conn + " = conn");
 	    //return conn;
 	}
 	
 	public com.mysql.jdbc.Connection getConnection() {
-		System.out.println("Getting the connection");
 		return conn;
 	}
 	

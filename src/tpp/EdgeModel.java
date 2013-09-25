@@ -59,7 +59,6 @@ public class EdgeModel {
 		clusterEdgesDrawn = null;
 		
 		if (bundledEdges() || intelligentEdges()) {
-			System.out.println("bundled,intelligent edges selected");
 			calculateCentroids();
 			calculateVectors();
 
@@ -71,7 +70,6 @@ public class EdgeModel {
 			for (int p = 0; p < centroids.size(); p++) {
 				for (int q = 0; q < centroids.size(); q++) {
 					clusterEdgesDrawn[p][q] = 0.0;
-//					System.out.println(p + ", " + q + ", " + clusterEdgesDrawn[p][q]);
 				}
 			}
 			

@@ -1,31 +1,21 @@
 package tpp;
 
 import java.awt.BorderLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.Scrollbar;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Enumeration;
 import java.util.Vector;
 
 import javax.swing.DefaultListModel;
-import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
 import weka.core.Attribute;
@@ -43,13 +33,11 @@ import weka.core.Instances;
 public class AttributeSelector extends JFrame implements ActionListener, ListSelectionListener {
 	
 	private ScatterPlotControlPanel cp;
-	private DefaultListModel attributeListModel;
 	private ScatterPlotModel model;
 	
-	private JList attributeList;
 	private JTable attributeTable;
 	private JButton OKButton;
-	private int[] selectedIndices;
+	
 	private AttributeTableModel attributeTableModel;
 
 	public AttributeSelector(ScatterPlotModel model, ScatterPlotControlPanel cp) {

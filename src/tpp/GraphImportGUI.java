@@ -38,10 +38,6 @@ public class GraphImportGUI extends JFrame implements ActionListener {
 	private JButton cancelButton;
 
 	private Object[] nodeIds;
-
-	private String edgeAttribute = null;
-
-	private String filePath = null;
 	
 	public GraphImportGUI(GraphOptionsTab graphOptionsTab, String[] nodeIds) {
 		super("Import graph from delimited file");

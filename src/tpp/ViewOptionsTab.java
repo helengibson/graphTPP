@@ -252,24 +252,16 @@ public class ViewOptionsTab extends JPanel implements ActionListener, ChangeList
 			if(s.equals("Paired"))
 				classColors = ColourScheme.getPaired();
 			if(s.equals("GnBu")){
-				System.out.println("GnBu selected");
 				Attribute at = pointModel.getSelectAttribute();
-				System.out.println("Current attribute is " + at.toString());
 				Enumeration classValues = at.enumerateValues();
 				int b = 0;
-				String classValue;
 				while(classValues.hasMoreElements()) {
-					classValue = (String) classValues.nextElement();
-					System.out.println("enumerating " + b);
 					b++;
 				}
-				System.out.println("There are "+ b + " values for this attribute");
 				classColors = ColourScheme.getGnBu(b);
 			}
 			if(s.equals("Custom"))
-				//classColors = getClassColors();
-				//custom disabled - set to default
-				classColors = ColourScheme.getSet1();
+				classColors = ColourScheme.getCustom();
 		}
 		return classColors;
 	}
@@ -300,20 +292,7 @@ public class ViewOptionsTab extends JPanel implements ActionListener, ChangeList
 		}
 		return spectrumColors;
 	}
-	
-//	private Color[] getClassColors(){
-//		
-//		Vector<SelectButton> selectButtons = selectionPanel.getSelectButtons();
-//		
-//		Color[] classColors = new Color[selectButtons.size()];
-//		
-//		for (int b = 0; b < selectButtons.size(); b++){
-//			classColors[b] = selectButtons.get(b).getForeground();
-//		}
-//		return classColors;
-//	}
-	
-		
+			
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		
@@ -328,10 +307,13 @@ public class ViewOptionsTab extends JPanel implements ActionListener, ChangeList
 				
 		if ((event.getSource() == backgroundCB) || (event.getSource() == spectrumCB) || (event.getSource() == classCB)) {
 			applyColorScheme(spModel, (String)backgroundCB.getSelectedItem());
+			
 			if(event.getSource() == backgroundCB)
 				spModel.setBGColor((String)backgroundCB.getSelectedItem());
+			
 			if(event.getSource() == classCB)
 				spModel.setClassColor((String)classCB.getSelectedItem());
+			
 			if(event.getSource() == spectrumCB)
 				spModel.setSpectrumColor((String)spectrumCB.getSelectedItem());
 		}

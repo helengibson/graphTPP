@@ -7,7 +7,9 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -31,6 +33,8 @@ public class SelectButton extends JButton implements ActionListener, MouseListen
 	private ScatterPlotModel spModel;
 	private Color color;
 	private PointModel pointModel;
+	
+	private static Vector<SelectButton> btns;
 
 	/**
 	 * Construct a button representing a particular class
@@ -158,6 +162,7 @@ public class SelectButton extends JButton implements ActionListener, MouseListen
 //			buttons.add(button);
 //		}
 		}
+		btns = buttons;
 		return buttons;
 
 	}
@@ -194,6 +199,13 @@ public class SelectButton extends JButton implements ActionListener, MouseListen
 		JColorChooser colorChooser = new JColorChooser();
 		color = colorChooser.showDialog(this, "Choose Color", button.getForeground());
 		button.setForeground(color);
+		ArrayList<Color> classColors = new ArrayList<Color>();
+		Iterator<SelectButton> i = btns.iterator();
+		while(i.hasNext()) {
+			SelectButton b = i.next();
+			classColors.add(b.getForeground());
+		}
+	ColourScheme.setCustomColor(classColors.toArray(new Color[classColors.size()]));	
 	}
 	
 	public Color getButtonColor() {
