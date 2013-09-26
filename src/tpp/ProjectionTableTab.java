@@ -110,8 +110,7 @@ public class ProjectionTableTab extends JPanel implements ActionListener  {
 					spModel.setSeparationAttribute(spModel.getInstances().attribute(attributeIndex));
 					spModel.setColourAttribute(spModel.getInstances().attribute(attributeIndex));
 					spcp.separateButton.setEnabled(spModel.getPointModel().getSelectAttribute() != null && spModel.getPointModel().getSelectAttribute().isNominal());
-//					revalidate();
-//					repaint();
+
 				}
 			}
 		});
@@ -124,7 +123,6 @@ public class ProjectionTableTab extends JPanel implements ActionListener  {
 		if (event.getSource() == removeAttributeButton
 				&& projectionTable.getSelectedAttributeIndices() != null
 				&& projectionTable.getSelectedAttributeIndices().length > 0){
-			System.out.println("selected attributes indices are:" + projectionTable.getSelectedAttributes().toString());
 			spModel.removeAttributes(projectionTable.getSelectedAttributes());}		
 
 		if (event.getSource() == undoButton)

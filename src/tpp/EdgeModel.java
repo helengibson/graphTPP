@@ -5,35 +5,35 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 
 import processing.core.PVector;
-
 import weka.core.Attribute;
 import weka.core.Instances;
 
 /**
  * @author Helen
- *
+ * 
+ *         This class controls all the data that is required to draw the edges
+ *         and how those edges are draw
+ *  
  */
 public class EdgeModel {
-	
+
 	private ScatterPlotModel spModel;
-	private Graph graph;
-	
-	// An array which holds the number of edges already drawn between each cluster
-	private double[][] clusterEdgesDrawn; 
+
+	private double[][] clusterEdgesDrawn;
 	private double bundleControl = 1;
 	private double bundleSpacing;
-	
+
 	private int lowEdgeWeightValue;
 	private int upperEdgeWeightRange;
-	
+
 	private boolean incomingEdges = true;
 	private boolean outgoingEdges = true;
-	
+
 	private boolean showSourceEdgeColor;
 	private boolean showTargetEdgeColor;
 	private boolean showDefaultEdgeColor = true;
 	private boolean showMixedEdgeColor;
-	
+
 	private Attribute currentBundledAttribute;
 	private boolean straightEdges = true;
 	private float beizerCurviness = 0.1f;
@@ -45,19 +45,29 @@ public class EdgeModel {
 	private boolean filterAllEdges;
 	private boolean filterEdgesByWeight;
 	private boolean viewEdgeWeights;
-	
+
 	private ArrayList<Point2D> centroids;
 	private PVector[][] vectors;
 	private PVector[][] midPoints;
 	private double[] centroidRadii;
-	
+
+	/**
+	 * Initialises the edge model with the scatterplotmodel
+	 * 
+	 * @param spModel
+	 */
 	public EdgeModel(ScatterPlotModel spModel) {
 		this.spModel = spModel;
 	}
-	
+
+	/*
+	 * Sets up the data for the edge model based on which type of edges we've
+	 * elected to draw. Only sets something up when the edges drawn are either
+	 * clustered or bundled
+	 */
 	public void initialise() {
 		clusterEdgesDrawn = null;
-		
+
 		if (bundledEdges() || intelligentEdges()) {
 			calculateCentroids();
 			calculateVectors();
@@ -65,17 +75,15 @@ public class EdgeModel {
 			centroids = getCentroids();
 			vectors = getVectors();
 
-							
 			clusterEdgesDrawn = new double[centroids.size()][centroids.size()];
 			for (int p = 0; p < centroids.size(); p++) {
 				for (int q = 0; q < centroids.size(); q++) {
 					clusterEdgesDrawn[p][q] = 0.0;
 				}
 			}
-			
-			bundleSpacing = (spModel.getGraph().getAllConnections().size()/centroids.size())/getBundleControl();
-			
-			System.out.println("Offset: " + bundleSpacing);
+
+			bundleSpacing = (spModel.getGraph().getAllConnections().size() / centroids
+					.size()) / getBundleControl();
 
 			if (intelligentEdges()) {
 				calculateCentroidRadius();
@@ -85,24 +93,7 @@ public class EdgeModel {
 			}
 		}
 	}
-	
-	public void setBundleControl(double bt) {
-		bundleControl = bt;
-		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-	
-	public double getBundleControl(){
-		return bundleControl;
-	}
-	
-	public double getBundleSpacing(){
-		return bundleSpacing;
-	}
-	
-	public double[][] getClusterEdgesDrawn(){
-		return clusterEdgesDrawn;
-	}
-	
+
 	/** Show the incoming edges of selected nodes(s) */
 	public void showIncomingEdges(boolean b) {
 		incomingEdges = b;
@@ -122,7 +113,7 @@ public class EdgeModel {
 	public boolean outgoingEdges() {
 		return outgoingEdges;
 	}
-	
+
 	/** Whether to color the edges the same as the source node */
 	public void setSourceColorEdges(boolean b) {
 		showSourceEdgeColor = b;
@@ -163,6 +154,86 @@ public class EdgeModel {
 		return showMixedEdgeColor;
 	}
 
+	/** Whether to add an arrow to each edge to indicate direction */
+	public void setDirected(boolean b) {
+		directed = b;
+		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
+	}
+
+	public boolean directed() {
+		return directed;
+	}
+
+	/** Filter all edges from view until nodes are selected */
+	public void setFilterAllEdges(boolean b) {
+		filterAllEdges = b;
+		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
+	}
+
+	public boolean filterAllEdges() {
+		return filterAllEdges;
+	}
+
+	/** Filter edges based on their weight */
+	public void setFilterEdgesByWeight(boolean b) {
+		filterEdgesByWeight = b;
+		spModel.fireModelChanged(TPPModelEvent.CONTROL_PANEL_UPDATE);
+	}
+
+	public boolean filterEdgesByWeight() {
+		return filterEdgesByWeight;
+	}
+
+	/** Reflect the edge weights in the thickness of the edges */
+	public void setViewEdgeWeights(boolean b) {
+		viewEdgeWeights = b;
+		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
+	}
+
+	public boolean viewEdgeWeights() {
+		return viewEdgeWeights;
+	}
+
+	public double getMinEdgeWeight() {
+		ArrayList<Connection> allConnections = spModel.getGraph()
+				.getAllConnections();
+		double min = allConnections.get(0).getEdgeWeight();
+		for (int i = 1; i < allConnections.size(); i++) {
+			if (allConnections.get(i).getEdgeWeight() < min)
+				min = allConnections.get(i).getEdgeWeight();
+		}
+		return min;
+	}
+
+	public double getMaxEdgeWeight() {
+		ArrayList<Connection> allConnections = spModel.getGraph()
+				.getAllConnections();
+		double max = allConnections.get(0).getEdgeWeight();
+		for (int i = 1; i < allConnections.size(); i++) {
+			if (allConnections.get(i).getEdgeWeight() > max)
+				max = allConnections.get(i).getEdgeWeight();
+		}
+		return max;
+	}
+
+	public void setLowerEdgeWeightRange(int lowerValue) {
+		lowEdgeWeightValue = lowerValue;
+		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
+	}
+
+	public void setUpperEdgeWeightRange(int upperValue) {
+		upperEdgeWeightRange = upperValue;
+		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
+	}
+
+	public int getLowerEdgeWeightRange() {
+		return lowEdgeWeightValue;
+	}
+
+	public int getUpperEdgeWeightRange() {
+		return upperEdgeWeightRange;
+	}
+
 	/** Whether to color the edges the same as the source node */
 	public void setStraightEdges(boolean b) {
 		straightEdges = b;
@@ -171,15 +242,6 @@ public class EdgeModel {
 
 	public boolean straightEdges() {
 		return straightEdges;
-	}
-
-	public float getBeizerCurviness() {
-		return beizerCurviness;
-	}
-
-	public void setBeizerCurviness(float t) {
-		beizerCurviness = t;
-		spModel.fireModelChanged(TPPModelEvent.RETINAL_ATTRIBUTE_CHANGED);
 	}
 
 	/** Whether to shape the edges as bezier curves */
@@ -192,18 +254,37 @@ public class EdgeModel {
 		return bezierEdges;
 	}
 
+	/** Set the bundled edges */
 	public void setBundledEdges(boolean b) {
 		bundledEdges = b;
 		currentBundledAttribute = spModel.getSeparationAttribute();
 		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
 	}
 	
+	public boolean bundledEdges() {
+		return bundledEdges;
+	}
+	
 	public Attribute getCurrentBundledAttribute() {
 		return currentBundledAttribute;
 	}
 
-	public boolean bundledEdges() {
-		return bundledEdges;
+	/** Controls the distances between edges in the bundle */
+	public void setBundleControl(double bt) {
+		bundleControl = bt;
+		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
+	}
+
+	public double getBundleControl() {
+		return bundleControl;
+	}
+	
+	public double getBundleSpacing() {
+		return bundleSpacing;
+	}
+
+	public double[][] getClusterEdgesDrawn() {
+		return clusterEdgesDrawn;
 	}
 
 	public void setFannedEdges(boolean b) {
@@ -224,84 +305,6 @@ public class EdgeModel {
 		return intelligentEdges;
 	}
 
-	/** Whether to add an arrow to each edge to indicate direction */
-	public void setDirected(boolean b) {
-		directed = b;
-		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean directed() {
-		return directed;
-	}
-
-	/** Filter all edges from view until nodes are selected */
-	public void setFilterAllEdges(boolean b) {
-		filterAllEdges = b;
-		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-	
-	public boolean filterAllEdges() {
-		return filterAllEdges;
-	}
-	
-	/** Filter edges based on their weight */
-	public void setFilterEdgesByWeight(boolean b) {
-		filterEdgesByWeight = b;
-		spModel.fireModelChanged(TPPModelEvent.CONTROL_PANEL_UPDATE);
-	}
-
-	public boolean filterEdgesByWeight() {
-		return filterEdgesByWeight;
-	}
-	
-	/** Reflect the edge weights in the thickness of the edges */
-	public void setViewEdgeWeights(boolean b) {
-		viewEdgeWeights = b;
-		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-
-	public boolean viewEdgeWeights() {
-		return viewEdgeWeights;
-	}
-
-	public double getMinEdgeWeight() {
-		ArrayList<Connection> allConnections = spModel.getGraph().getAllConnections();
-		double min = allConnections.get(0).getEdgeWeight();
-		for (int i = 1; i < allConnections.size(); i++){
-			if (allConnections.get(i).getEdgeWeight() < min)
-				min = allConnections.get(i).getEdgeWeight();
-		}
-		return min;
-	}
-	
-	public double getMaxEdgeWeight() {
-		ArrayList<Connection> allConnections = spModel.getGraph().getAllConnections();
-		double max = allConnections.get(0).getEdgeWeight();
-		for (int i = 1; i < allConnections.size(); i++){
-			if (allConnections.get(i).getEdgeWeight() > max)
-				max = allConnections.get(i).getEdgeWeight();
-		}
-		return max;
-	}
-	
-	public void setLowerEdgeWeightRange(int lowerValue){
-		lowEdgeWeightValue = lowerValue;
-		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-	
-	public void setUpperEdgeWeightRange(int upperValue){
-		upperEdgeWeightRange = upperValue;
-		spModel.fireModelChanged(TPPModelEvent.DECORATION_CHANGED);
-	}
-	
-	public int getLowerEdgeWeightRange(){
-		return lowEdgeWeightValue;
-	}
-	
-	public int getUpperEdgeWeightRange(){
-		return upperEdgeWeightRange;
-	}
-	
 	public void calculateCentroids() {
 
 		Attribute sepAtt = currentBundledAttribute;
@@ -310,12 +313,11 @@ public class EdgeModel {
 		centroids = new ArrayList<Point2D>();
 
 		if (sepAtt.isNominal()) {
-			Enumeration classValues = sepAtt.enumerateValues();
-			int i = 0;
+			Enumeration<String> classValues = sepAtt.enumerateValues();
+
 			String classValue;
 			while (classValues.hasMoreElements()) {
-				classValue = (String) classValues.nextElement();
-//				System.out.println(classValue);
+				classValue = classValues.nextElement();
 				int k = 0;
 				double xcoordsum = 0;
 				double ycoordsum = 0;
@@ -328,11 +330,10 @@ public class EdgeModel {
 					}
 				}
 				centroids.add(new Point2D.Double(xcoordsum / k, ycoordsum / k));
-				i++;
 			}
 		}
 	}
-	
+
 	/**
 	 * Calculate the vectors in between each pair of clusters
 	 */
@@ -352,41 +353,38 @@ public class EdgeModel {
 		}
 	}
 
-
 	public ArrayList<Point2D> getCentroids() {
 		return centroids;
 	}
-	
+
 	public PVector[][] getVectors() {
 		return vectors;
 	}
-	
+
 	public double[] getCentroidRadii() {
 		return centroidRadii;
 	}
-	
+
 	public void calculateCentroidRadius() {
-		
+
 		Attribute sepAtt = currentBundledAttribute;
 		Instances instances = spModel.getInstances();
-		centroidRadii =  new double[sepAtt.numValues()];
-		
+		centroidRadii = new double[sepAtt.numValues()];
+
 		if (sepAtt.isNominal()) {
-			Enumeration classValues = sepAtt.enumerateValues();
+			Enumeration<String> classValues = sepAtt.enumerateValues();
 			String classValue;
 			int i = 0;
 			while (classValues.hasMoreElements()) {
-				classValue = (String) classValues.nextElement();
-				int k = 0;
+				classValue = classValues.nextElement();
 				double maxRadius = 0;
 				for (int j = 0; j < spModel.getNumDataPoints(); j++) {
-					// System.out.println(instances.get(j).toString(sepAtt) +
-					// " : " + classValue);
 					if (instances.get(j).toString(sepAtt)
 							.replaceAll("^\'|\'$", "").equals(classValue)) {
 						double xcoord = spModel.getTarget().get(j, 0);
 						double ycoord = spModel.getTarget().get(j, 1);
-						double radius = Math.sqrt(Math.pow(xcoord, 2)+ Math.pow(ycoord, 2));
+						double radius = Math.sqrt(Math.pow(xcoord, 2)
+								+ Math.pow(ycoord, 2));
 						if (radius > maxRadius)
 							maxRadius = radius;
 					}
@@ -396,7 +394,7 @@ public class EdgeModel {
 			}
 		}
 	}
-	
+
 	public void calculateBezierCentroidMidPoints() {
 		int cs = centroids.size();
 		midPoints = new PVector[cs][cs];
@@ -411,9 +409,14 @@ public class EdgeModel {
 
 				double tcx = targetCentroid.getX();
 				double tcy = targetCentroid.getY();
-							 
-				// find the midpoint of the bezier curve between the two centroids
-				PVector p2 = new PVector((float) tcx, (float) tcy); // first centroid to mid point of centroids
+
+				// find the midpoint of the bezier curve between the two
+				// centroids
+				PVector p2 = new PVector((float) tcx, (float) tcy); // first
+																	// centroid
+																	// to mid
+																	// point of
+																	// centroids
 				p2.sub(new PVector((float) scx, (float) scy));
 				float lengthp2 = p2.mag();
 				p2.normalize();
@@ -435,17 +438,19 @@ public class EdgeModel {
 				c2p2.mult(-factorp2);
 				c2p2.add(new PVector((float) tcx, (float) tcy));
 				c2p2.add(n2);
-				 
-				double bmpx = (0.125 * (scx + tcx)) + (0.375 * (c1p2.x + c2p2.x));
-				double bmpy = (0.125 * (scy + tcy)) + (0.375 * (c1p2.y + c2p2.y));
-				 
-				midPoints[i][j] = new PVector((float)bmpx, (float)bmpy);
-				
+
+				double bmpx = (0.125 * (scx + tcx))
+						+ (0.375 * (c1p2.x + c2p2.x));
+				double bmpy = (0.125 * (scy + tcy))
+						+ (0.375 * (c1p2.y + c2p2.y));
+
+				midPoints[i][j] = new PVector((float) bmpx, (float) bmpy);
+
 			}
 		}
-				
+
 	}
-	
+
 	public PVector[][] getBezierMidPoints() {
 		return midPoints;
 	}

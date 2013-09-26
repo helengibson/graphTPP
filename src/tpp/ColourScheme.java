@@ -326,9 +326,7 @@ public class ColourScheme implements Serializable {
 		new Color(8,64,129)};
 	
 	public static Color[] getGnBu(int classes) {
-		
-		System.out.println("Now setting up the color scheme");
-		
+				
 		int rMin = GnBu[2].getRed();
 		int rMid = GnBu[1].getRed();
 		int rMax = GnBu[0].getRed();
@@ -362,11 +360,7 @@ public class ColourScheme implements Serializable {
 			float lowClassesf = lowClasses * 1f;
 			
 			for (int c = 1; c < halfway; c++) {
-				
-				int redPos = Math.round(rMid + (c / lowClassesf) * (rMax - rMid));
-				int greenPos = Math.round(gMid + (c / lowClassesf) * (gMax - gMid));
-				int bluePos = Math.round(bMid + (c / lowClassesf)* (bMax - bMid));
-						
+										
 				// the positive colors
 				newGnBu[lowClasses + c] = new Color(Math.round(rMid + (c / lowClassesf) * (rMax - rMid)),
 						Math.round(gMid + (c / lowClassesf) * (gMax - gMid)), Math.round(bMid + (c / lowClassesf)

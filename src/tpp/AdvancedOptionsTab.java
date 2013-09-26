@@ -35,7 +35,7 @@ public class AdvancedOptionsTab extends JPanel implements ActionListener {
 	private JButton removeSeriesButton;
 	
 	private JButton createTestSetButton;
-	private JComboBox createTestSetKCombo;
+	private JComboBox<Integer> createTestSetKCombo;
 	private JButton removeTestSetButton;
 	
 	private GenericObjectEditor classifierChooser;
@@ -128,7 +128,7 @@ public class AdvancedOptionsTab extends JPanel implements ActionListener {
 		for (int k = 2; k < 11; k++)
 			testSetKValues.add(new Integer(k));
 		
-		createTestSetKCombo = new JComboBox(testSetKValues);
+		createTestSetKCombo = new JComboBox<Integer>(testSetKValues);
 		createTestSetKCombo.setToolTipText("<html><p width=\"300px\">What proportion of " +
 				"the data will be used as a test set (1/k)</p></html>");
 		

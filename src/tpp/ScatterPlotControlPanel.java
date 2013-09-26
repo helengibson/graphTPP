@@ -1,60 +1,30 @@
 package tpp;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Vector;
 
-import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
-import javax.swing.JSlider;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.apache.batik.svggen.font.Point;
-import org.apache.commons.math.genetics.SelectionPolicy;
-import org.apache.commons.math.optimization.fitting.CurveFitter;
-
-import weka.classifiers.Classifier;
 import weka.core.Attribute;
-import weka.core.AttributeStats;
 import weka.core.Instances;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Remove;
-import weka.gui.GenericObjectEditor;
-import weka.gui.PropertyPanel;
-import weka.gui.explorer.ExplorerDefaults;
 
 /*
  * Created on 23-May-2006
@@ -72,11 +42,11 @@ public class ScatterPlotControlPanel extends JPanel implements
 		TPPModelEventListener, ActionListener {
 
 	private JButton clusterButton;
-	private JComboBox clusterNumberCombo;
-	private JComboBox clusterOptionsCB;
+	private JComboBox<String> clusterNumberCombo;
+	private JComboBox<String> clusterOptionsCB;
 
 	private JLabel projectionOptionsLabel;
-	private JComboBox projectionOptions;
+	private JComboBox<String> projectionOptions;
 	private JButton projectionButton;
 
 	String[] attributeSelectionOptions = { "All", "Attributes", "Edges",
@@ -86,7 +56,7 @@ public class ScatterPlotControlPanel extends JPanel implements
 	AttributeCombo selectCombo;
 	SeparatePointsButton separateButton;
 
-	private JComboBox pointSelectorCombo;
+	private JComboBox<String> pointSelectorCombo;
 	private JButton pointSelectorButton;
 	protected ProjectionTable projectionTable = null;
 
@@ -95,8 +65,7 @@ public class ScatterPlotControlPanel extends JPanel implements
 	protected ScatterPlotModel spModel;
 	private JSplitPane splitter;
 	private JPanel topSSPanel;
-	private Graph graph;
-
+	
 	private int currentTabIndex = 0;
 	private int[] selectedIndices;
 	private PointModel pointModel;
@@ -108,7 +77,7 @@ public class ScatterPlotControlPanel extends JPanel implements
 	public void setModel(ScatterPlotModel tpp) throws TPPException {
 		this.spModel = tpp;
 		pointModel = spModel.getPointModel();
-		graph = spModel.getGraph();
+		spModel.getGraph();
 		spModel.addListener(this);
 		init();
 	}
@@ -250,7 +219,7 @@ public class ScatterPlotControlPanel extends JPanel implements
 		projectionOptionsLabel = new JLabel("Choose projection attributes:",
 				JLabel.RIGHT);
 
-		projectionOptions = new JComboBox(attributeSelectionOptions);
+		projectionOptions = new JComboBox<String>(attributeSelectionOptions);
 		projectionOptions.addActionListener(this);
 
 		projectionButton = new JButton("Update");
@@ -276,7 +245,7 @@ public class ScatterPlotControlPanel extends JPanel implements
 
 		// ////////////////////////////////////////////////////////////////
 
-		pointSelectorCombo = new JComboBox(spModel.getPointDescriptions());
+		pointSelectorCombo = new JComboBox<String>(spModel.getPointDescriptions());
 		pointSelectorCombo.setEditable(true);
 
 		pointSelectorButton = new JButton("Add point to selection: ");
@@ -323,11 +292,11 @@ public class ScatterPlotControlPanel extends JPanel implements
 		for (int k = 2; k < 20; k++)
 			clusters.add(" N=" + k);
 
-		clusterNumberCombo = new JComboBox(clusters);
+		clusterNumberCombo = new JComboBox<String>(clusters);
 		clusterNumberCombo
 				.setToolTipText("Choose the number of clusters to find in the data");
 
-		clusterOptionsCB = new JComboBox(attributeSelectionOptions);
+		clusterOptionsCB = new JComboBox<String>(attributeSelectionOptions);
 		clusterOptionsCB.addActionListener(this);
 		clusterOptionsCB.setToolTipText("Choose the attributes that will be used in the projection");
 
@@ -358,10 +327,8 @@ public class ScatterPlotControlPanel extends JPanel implements
 		
 		if (event.getSource() == clusterOptionsCB) {
 			if (clusterOptionsCB.getSelectedItem().equals("Custom")) {
-				AttributeSelector selector = new AttributeSelector(
-						spModel, this);
+				new AttributeSelector(spModel, this);
 			}
-//			currentClusterSelection = clusterOptionsCB.getSelectedItem();
 		}
 
 		if (event.getSource() == clusterButton) {
@@ -417,7 +384,7 @@ public class ScatterPlotControlPanel extends JPanel implements
 				}
 			}
 			Attribute cluster = spModel.cluster(
-					((JComboBox) clusterNumberCombo).getSelectedIndex() + 2,
+					((JComboBox<String>) clusterNumberCombo).getSelectedIndex() + 2,
 					inCopy, attributesUsed);
 			pointModel.setSelectAttribute(cluster);
 			spModel.setColourAttribute(cluster);
@@ -426,9 +393,7 @@ public class ScatterPlotControlPanel extends JPanel implements
 		
 		if (event.getSource() == projectionOptions) {
 			if (projectionOptions.getSelectedItem().equals("Custom")) {
-				System.out.println("custom projection options chosen");
-				AttributeSelector selector = new AttributeSelector(
-						spModel, this);
+				new AttributeSelector(spModel, this);
 			}
 		}
 		
