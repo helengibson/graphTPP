@@ -1,3 +1,6 @@
+/* 
+Copyright (C) 2015  Helen Gibson
+*/
 package tpp;
 
 import java.awt.Dimension;
