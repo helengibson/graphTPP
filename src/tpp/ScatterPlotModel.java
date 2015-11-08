@@ -26,6 +26,10 @@ import weka.filters.unsupervised.attribute.Remove;
 /**
  * A TPPModel with added members for allowing it to be presented and manipulated
  * using via a Scatter Plot GUI
+ * Updated by 
+ * @author Helen
+ * from orignal TPP version
+ *
  */
 public class ScatterPlotModel extends TPPModel implements Cloneable {
 	

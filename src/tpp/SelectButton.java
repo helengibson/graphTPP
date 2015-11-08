@@ -23,7 +23,10 @@ import weka.core.Instances;
  * A button used to select points based on the value of a particular attribute.
  * If the attribute is nominal then the points are selected by the class value.
  * If the attribute is numeric then the points are selected by numeric range.
- * 
+ *
+ * Updated by 
+ * @author Helen Gibson
+ * from original TPP version
  */
 public class SelectButton extends JButton implements ActionListener, MouseListener {
 

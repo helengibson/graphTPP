@@ -36,6 +36,8 @@ import weka.filters.unsupervised.attribute.Remove;
  * set
  * 
  * @author Joe
+ * Updated by 
+ * @author Helen
  * 
  */
 public class ScatterPlotControlPanel extends JPanel implements

@@ -17,6 +17,9 @@ import tpp.ScatterPlotViewPanel.ScatterPlotViewPanelCanvas;
  * This mouse listener should know about the frame (or the controller that
  * replaces it, not the view panel, and all events should be passed through the
  * controller.
+ * Updated by 
+ * @author Helen 
+ * from original TPP version
  */
 class ScatterPlotViewPanelMouseListener implements MouseListener,
 		MouseMotionListener {

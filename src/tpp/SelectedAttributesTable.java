@@ -1,3 +1,4 @@
+/* Added by Helen Gibson - based on ProjectionTable.java */
 package tpp;
 
 import java.awt.Color;

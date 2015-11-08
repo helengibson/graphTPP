@@ -1,3 +1,5 @@
+/* Added by Helen Gibson - based on ProjectionTableListSelectionModel.java */
+
 package tpp;
 
 import javax.swing.DefaultListSelectionModel;

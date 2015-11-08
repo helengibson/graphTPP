@@ -58,6 +58,9 @@ import processing.core.PVector;
  * projection pursuit
  * 
  * @author Joe Faith
+ * updated for graphTPP by  
+ * @author Helen Gibson
+ *
  */
 public class ScatterPlotViewPanel extends JPanel implements
 		TPPModelEventListener, ComponentListener {

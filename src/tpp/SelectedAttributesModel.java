@@ -1,3 +1,4 @@
+/* Added by Helen Gibson - based on ProjectionTableModel.java */
 package tpp;
 
 import java.util.Vector;
