@@ -21,3 +21,26 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+# Intro to graphTPP
+graphTPP is a graph layout method and software that emphasises using attributes and clustering for layout. 
+
+Data from the applied soft computing paper can be found under data/AppliedSoftComputing
+Details of the commands run in R to create the data sets can be found in data/CreateGraphs.R
+
+To load the attribute data select File > Load data from ARFF file
+And select one of the smallworld ARFF files
+
+To load the edge data select 'Graph Options' from the right hand panel and the click 'Load Graph'
+
+*Leave the node identifier as the 'Id' field
+*Select one of the edges file
+*Tick 'Ignore header'
+*Leave use edge weights unticked
+*Leave the delimiter as a comma
+*Click OK
+
+To interact with the graph nodes can be selected with by dragging a rubber band selection or a whole cluster can be selected by clicking its name in the top panel
+
+Separation of clusters can run automatically by pressing and holding the 'Separate Points' button
+
