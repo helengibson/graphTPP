@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 graphTPP is a graph layout method and software that emphasises using attributes and clustering for layout. 
 
 Data from the applied soft computing paper can be found under data/AppliedSoftComputing
+
 Details of the commands run in R to create the data sets can be found in data/CreateGraphs.R
 
 To load the attribute data select File > Load data from ARFF file
@@ -43,4 +44,29 @@ To load the edge data select 'Graph Options' from the right hand panel and the c
 To interact with the graph nodes can be selected with by dragging a rubber band selection or a whole cluster can be selected by clicking its name in the top panel
 
 Separation of clusters can run automatically by pressing and holding the 'Separate Points' button
+
+#Importing personal graph files
+
+To run your own files in graphTPP requires their import and formatting in Weka first. 
+http://www.cs.waikato.ac.nz/ml/weka/
+
+Once Weka is running import your csv file with the node attributes. 
+
+The file must roughly have the format
+
+Node attributes | Classes | NodeId
+
+Node attributes must have the numeric format (try the normalize procedure if you have attributes on lots of different scales)
+
+Classes have the nominal format
+
+NodeId has the string format. 
+
+This can then be exported as a ARFF file to be imported into graphTPP
+
+The edgelist has the format
+source,target 
+
+as a csv file where the source and target columns reference the nodeid from the ARFF file. 
+
 
