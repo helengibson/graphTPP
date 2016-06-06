@@ -22,6 +22,10 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+#Installation
+Project is currently set up to run in eclipse 
+TODO - Update to have maven integration
+
 # Intro to graphTPP
 graphTPP is a graph layout method and software that emphasises using attributes and clustering for layout. 
 
